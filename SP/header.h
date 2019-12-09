@@ -50,21 +50,71 @@
 extern int grid_points[3], nx2, ny2, nz2;
 extern logical timeron;
 
+static const double ce[5][13] = {
+  [0] = { 2.0, 0.0, 0.0, 4.0, 5.0, 3.0, 0.5, 0.02, 0.01, 0.03, 0.5, 0.4, 0.3 },
+  [1] = { 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 0.01, 0.03, 0.02, 0.4, 0.3, 0.5 },
+  [2] = { 2.0, 2.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.04, 0.03, 0.05, 0.3, 0.5, 0.4 },
+  [3] = { 2.0, 2.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.03, 0.05, 0.04, 0.2, 0.1, 0.3 },
+  [4] = { 5.0, 4.0, 3.0, 2.0, 0.1, 0.4, 0.3, 0.05, 0.04, 0.03, 0.1, 0.3, 0.2 }
+};
+
+static const double c1 = 1.4;
+static const double c2 = 0.4;
+static const double c3 = 0.1;
+static const double c4 = 1.0;
+static const double c5 = 1.4;
+
+static const double bt = 0.70710678118654752440084436210484903928483593768847403658833986899536623923105351942519376716382078636750692311545;
+
+static const double c1c2 = c1 * c2;
+static const double c1c5 = c1 * c5;
+static const double c3c4 = c3 * c4;
+static const double c1345 = c1c5 * c3c4;
+
+static const double conz1 = (1.0-c1c5);
+
+static const double dx1 = 0.75;
+static const double dx2 = 0.75;
+static const double dx3 = 0.75;
+static const double dx4 = 0.75;
+static const double dx5 = 0.75;
+
+static const double dy1 = 0.75;
+static const double dy2 = 0.75;
+static const double dy3 = 0.75;
+static const double dy4 = 0.75;
+static const double dy5 = 0.75;
+
+static const double dz1 = 1.0;
+static const double dz2 = 1.0;
+static const double dz3 = 1.0;
+static const double dz4 = 1.0;
+static const double dz5 = 1.0;
+ 
+static const double dxmax = max(dx3, dx4);
+static const double dymax = max(dy2, dy4);
+static const double dzmax = max(dz2, dz3);
+ 
+static const double dssp = 0.25 * max(dx1, max(dy1, dz1));
+ 
+static const double c4dssp = 4.0 * dssp;
+static const double c5dssp = 5.0 * dssp;
+
+static const double c2iv  = 2.5;
+static const double con43 = 4.0/3.0;
+static const double con16 = 1.0/6.0;
+
 /* common /constants/ */
-extern double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, 
-              dx1, dx2, dx3, dx4, dx5, dy1, dy2, dy3, dy4, 
-              dy5, dz1, dz2, dz3, dz4, dz5, dssp, dt, 
-              ce[5][13], dxmax, dymax, dzmax, xxcon1, xxcon2, 
+extern double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt, 
+              xxcon1, xxcon2, dnzm1, dtdssp, dttx1,
               xxcon3, xxcon4, xxcon5, dx1tx1, dx2tx1, dx3tx1,
               dx4tx1, dx5tx1, yycon1, yycon2, yycon3, yycon4,
               yycon5, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1,
               zzcon1, zzcon2, zzcon3, zzcon4, zzcon5, dz1tz1, 
               dz2tz1, dz3tz1, dz4tz1, dz5tz1, dnxm1, dnym1, 
-              dnzm1, c1c2, c1c5, c3c4, c1345, conz1, c1, c2, 
-              c3, c4, c5, c4dssp, c5dssp, dtdssp, dttx1, bt,
               dttx2, dtty1, dtty2, dttz1, dttz2, c2dttx1, 
               c2dtty1, c2dttz1, comz1, comz4, comz5, comz6, 
-              c3c4tx3, c3c4ty3, c3c4tz3, c2iv, con43, con16;
+              c3c4tx3, c3c4ty3, c3c4tz3;
 
 #define IMAX    PROBLEM_SIZE
 #define JMAX    PROBLEM_SIZE
@@ -77,31 +127,31 @@ extern double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3,
 // for even number sizes only
 //---------------------------------------------------------------------
 /* common /fields/ */
-extern double u      [KMAX][JMAXP+1][IMAXP+1][5];
-extern double us     [KMAX][JMAXP+1][IMAXP+1];
-extern double vs     [KMAX][JMAXP+1][IMAXP+1];
-extern double ws     [KMAX][JMAXP+1][IMAXP+1];
-extern double qs     [KMAX][JMAXP+1][IMAXP+1];
-extern double rho_i  [KMAX][JMAXP+1][IMAXP+1];
-extern double speed  [KMAX][JMAXP+1][IMAXP+1];
-extern double square [KMAX][JMAXP+1][IMAXP+1];
-extern double rhs    [KMAX][JMAXP+1][IMAXP+1][5];
-extern double forcing[KMAX][JMAXP+1][IMAXP+1][5];
+extern double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern double (*forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
 
 /* common /work_1d/ */
-extern double cv  [PROBLEM_SIZE];
-extern double rhon[PROBLEM_SIZE];
-extern double rhos[PROBLEM_SIZE];
-extern double rhoq[PROBLEM_SIZE];
-extern double cuf [PROBLEM_SIZE];
-extern double q   [PROBLEM_SIZE];
-extern double ue [PROBLEM_SIZE][5];
-extern double buf[PROBLEM_SIZE][5];
+extern double (*cv  )/*[PROBLEM_SIZE]*/;
+extern double (*rhon)/*[PROBLEM_SIZE]*/;
+extern double (*rhos)/*[PROBLEM_SIZE]*/;
+extern double (*rhoq)/*[PROBLEM_SIZE]*/;
+extern double (*cuf )/*[PROBLEM_SIZE]*/;
+extern double (*q   )/*[PROBLEM_SIZE]*/;
+extern double (*ue  )/*[PROBLEM_SIZE]*/[5];
+extern double (*buf )/*[PROBLEM_SIZE]*/[5];
 
 /* common /work_lhs/ */
-extern double lhs [IMAXP+1][IMAXP+1][5];
-extern double lhsp[IMAXP+1][IMAXP+1][5];
-extern double lhsm[IMAXP+1][IMAXP+1][5];
+extern double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5];
+extern double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5];
+extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
 
 //-----------------------------------------------------------------------
 // Timer constants
@@ -125,6 +175,7 @@ extern double lhsm[IMAXP+1][IMAXP+1][5];
 
 
 //-----------------------------------------------------------------------
+void allocate();
 void initialize();
 void lhsinit(int ni, int nj);
 void lhsinitj(int nj, int ni);
@@ -144,4 +195,5 @@ void txinvr();
 void error_norm(double rms[5]);
 void rhs_norm(double rms[5]);
 void verify(int no_time_steps, char *Class, logical *verified);
+void deallocate();
 
