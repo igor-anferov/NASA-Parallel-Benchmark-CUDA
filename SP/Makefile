@@ -14,7 +14,7 @@ OBJS = sp.o allocate.o initialize.o exact_solution.o exact_rhs.o \
        z_solve.o tzetar.o add.o txinvr.o error.o verify.o deallocate.o  \
        ${COMMON}/print_results.o ${COMMON}/c_timers.o ${COMMON}/wtime.o
 
-CUDA_OBJS = rhs.cu.o
+CUDA_OBJS = cuda_init.cpp.o rhs.cu.o
 
 ifdef NEED_CUDA
 OBJS += ${CUDA_OBJS}
@@ -34,10 +34,13 @@ ${PROGRAM}: config ${OBJS}
 	${CLINK} ${CLINKFLAGS} -o ${PROGRAM} ${OBJS} ${C_LIB}
 
 %.cu.o: %.cu  header.h npbparams.h
-	${DEVICE_CC} -arch ${ARCH} -ccbin ${CCOMPILE} $< -o $@
+	${DEVICE_CC} -arch ${ARCH} ${C_INC} $< -c -o $@
 
 %.o: %.c  header.h npbparams.h
 	${CCOMPILE} $< -o $@
+
+%.cpp.o: %.cpp  header.h npbparams.h
+	${CCOMPILE_pp} $< -o $@
 
 clean:
 	- rm -f *.o *~ mputil*

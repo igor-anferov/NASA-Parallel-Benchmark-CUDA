@@ -45,64 +45,67 @@
 
 #include "timers.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* common /global/ */
 extern int grid_points[3], nx2, ny2, nz2;
 extern logical timeron;
 
 static const double ce[5][13] = {
-  [0] = { 2.0, 0.0, 0.0, 4.0, 5.0, 3.0, 0.5, 0.02, 0.01, 0.03, 0.5, 0.4, 0.3 },
-  [1] = { 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 0.01, 0.03, 0.02, 0.4, 0.3, 0.5 },
-  [2] = { 2.0, 2.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.04, 0.03, 0.05, 0.3, 0.5, 0.4 },
-  [3] = { 2.0, 2.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.03, 0.05, 0.04, 0.2, 0.1, 0.3 },
-  [4] = { 5.0, 4.0, 3.0, 2.0, 0.1, 0.4, 0.3, 0.05, 0.04, 0.03, 0.1, 0.3, 0.2 }
+  { 2.0, 0.0, 0.0, 4.0, 5.0, 3.0, 0.5, 0.02, 0.01, 0.03, 0.5, 0.4, 0.3 },
+  { 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 0.01, 0.03, 0.02, 0.4, 0.3, 0.5 },
+  { 2.0, 2.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.04, 0.03, 0.05, 0.3, 0.5, 0.4 },
+  { 2.0, 2.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.03, 0.05, 0.04, 0.2, 0.1, 0.3 },
+  { 5.0, 4.0, 3.0, 2.0, 0.1, 0.4, 0.3, 0.05, 0.04, 0.03, 0.1, 0.3, 0.2 }
 };
 
-static const double c1 = 1.4;
-static const double c2 = 0.4;
-static const double c3 = 0.1;
-static const double c4 = 1.0;
-static const double c5 = 1.4;
+#define c1 1.4
+#define c2 0.4
+#define c3 0.1
+#define c4 1.0
+#define c5 1.4
 
-static const double bt = 0.70710678118654752440084436210484903928483593768847403658833986899536623923105351942519376716382078636750692311545;
+#define bt 0.70710678118654752440084436210484903928483593768847403658833986899536623923105351942519376716382078636750692311545
 
-static const double c1c2 = c1 * c2;
-static const double c1c5 = c1 * c5;
-static const double c3c4 = c3 * c4;
-static const double c1345 = c1c5 * c3c4;
+#define c1c2 (c1 * c2)
+#define c1c5 (c1 * c5)
+#define c3c4 (c3 * c4)
+#define c1345 (c1c5 * c3c4)
 
-static const double conz1 = (1.0-c1c5);
+#define conz1 (1.0-c1c5)
 
-static const double dx1 = 0.75;
-static const double dx2 = 0.75;
-static const double dx3 = 0.75;
-static const double dx4 = 0.75;
-static const double dx5 = 0.75;
+#define dx1 0.75
+#define dx2 0.75
+#define dx3 0.75
+#define dx4 0.75
+#define dx5 0.75
 
-static const double dy1 = 0.75;
-static const double dy2 = 0.75;
-static const double dy3 = 0.75;
-static const double dy4 = 0.75;
-static const double dy5 = 0.75;
+#define dy1 0.75
+#define dy2 0.75
+#define dy3 0.75
+#define dy4 0.75
+#define dy5 0.75
 
-static const double dz1 = 1.0;
-static const double dz2 = 1.0;
-static const double dz3 = 1.0;
-static const double dz4 = 1.0;
-static const double dz5 = 1.0;
+#define dz1 1.0
+#define dz2 1.0
+#define dz3 1.0
+#define dz4 1.0
+#define dz5 1.0
  
-static const double dxmax = max(dx3, dx4);
-static const double dymax = max(dy2, dy4);
-static const double dzmax = max(dz2, dz3);
+#define dxmax max(dx3, dx4)
+#define dymax max(dy2, dy4)
+#define dzmax max(dz2, dz3)
  
-static const double dssp = 0.25 * max(dx1, max(dy1, dz1));
+#define dssp (0.25 * max(dx1, max(dy1, dz1)))
  
-static const double c4dssp = 4.0 * dssp;
-static const double c5dssp = 5.0 * dssp;
+#define c4dssp (4.0 * dssp)
+#define c5dssp (5.0 * dssp)
 
-static const double c2iv  = 2.5;
-static const double con43 = 4.0/3.0;
-static const double con16 = 1.0/6.0;
+#define c2iv  2.5
+#define con43 (4.0/3.0)
+#define con16 (1.0/6.0)
 
 /* common /constants/ */
 extern double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt, 
@@ -175,6 +178,9 @@ extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
 
 
 //-----------------------------------------------------------------------
+#ifdef NEED_CUDA
+void cuda_init();
+#endif
 void allocate();
 void initialize();
 void lhsinit(int ni, int nj);
@@ -197,3 +203,6 @@ void rhs_norm(double rms[5]);
 void verify(int no_time_steps, char *Class, logical *verified);
 void deallocate();
 
+#ifdef __cplusplus
+}
+#endif

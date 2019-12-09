@@ -4,7 +4,7 @@
 
 #ifdef NEED_CUDA
 #include <cuda_runtime.h>
-#define ALLOCATE(ptr, size) assert(cudaSuccess == cudaHostAlloc(&(ptr), (size)*sizeof(*ptr)))
+#define ALLOCATE(ptr, size) assert(cudaSuccess == cudaHostAlloc((void**)&(ptr), (size)*sizeof(*ptr), 0))
 #else
 #include <stdlib.h>
 #define ALLOCATE(ptr, size) assert(ptr = malloc((size)*sizeof(*ptr)))

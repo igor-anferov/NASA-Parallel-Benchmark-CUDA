@@ -31,6 +31,8 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
+#ifndef NEED_CUDA
+
 #include <math.h>
 #include "header.h"
 
@@ -381,3 +383,5 @@ void compute_rhs()
   }
   if (timeron) timer_stop(t_rhs);
 }
+
+#endif

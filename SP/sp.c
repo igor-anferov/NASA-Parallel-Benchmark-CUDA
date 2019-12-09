@@ -93,6 +93,9 @@ int main(int argc, char *argv[])
   char Class;
   char *t_names[t_last+1];
 
+#ifdef NEED_CUDA
+  cuda_init();
+#endif
   allocate();
 
   //---------------------------------------------------------------------

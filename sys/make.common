@@ -4,6 +4,7 @@ CCOMPILE_pp = $(CC_pp)  -c $(C_INC_pp) $(CFLAGS_pp)
 
 ifdef NEED_CUDA
 CCOMPILE += -DNEED_CUDA
+CCOMPILE_pp += -DNEED_CUDA
 endif
 
 # Class "U" is used internally by the setparams program to mean
