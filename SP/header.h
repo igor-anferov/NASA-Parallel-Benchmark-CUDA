@@ -50,9 +50,18 @@ extern "C" {
 #endif
 
 /* common /global/ */
-extern int grid_points[3], nx2, ny2, nz2;
+extern int *grid_points/*[3]*/;
+extern int nx2, ny2, nz2;
 extern logical timeron;
 
+#ifdef NEED_CUDA
+extern dim3 blockDim;
+extern dim3 gridDim;
+#endif
+
+#ifdef __CUDA_ARCH__
+__device__
+#endif
 static const double ce[5][13] = {
   { 2.0, 0.0, 0.0, 4.0, 5.0, 3.0, 0.5, 0.02, 0.01, 0.03, 0.5, 0.4, 0.3 },
   { 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 0.01, 0.03, 0.02, 0.4, 0.3, 0.5 },
@@ -185,6 +194,9 @@ void allocate();
 void initialize();
 void lhsinit(int ni, int nj);
 void lhsinitj(int nj, int ni);
+#ifdef __CUDA_ARCH__
+__global__
+#endif
 void exact_solution(double xi, double eta, double zeta, double dtemp[5]);
 void exact_rhs();
 void set_constants();

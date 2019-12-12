@@ -472,12 +472,6 @@ __global__ void compute_rhs_tail(
 
 void compute_rhs()
 {
-  dim3 blockDim(8, 8, 8);
-  dim3 gridDim(
-    (grid_points[0] - 1) / blockDim.x + 1,
-    (grid_points[1] - 1) / blockDim.y + 1,
-    (grid_points[2] - 1) / blockDim.z + 1
-  );
   if (timeron) timer_start(t_rhs);
 
   compute_rhs_intro <<< gridDim, blockDim >>> (

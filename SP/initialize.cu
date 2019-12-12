@@ -33,15 +33,16 @@
 
 #include "header.h"
 
-//---------------------------------------------------------------------
-// This subroutine initializes the field variable u using 
-// tri-linear transfinite interpolation of the boundary values     
-//---------------------------------------------------------------------
+__global__ void initialize_kernel(
+    int* grid_points,
+    double (*u)/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double dnxm1, dnym1, dnzm1
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z;
 
-#ifndef NEED_CUDA
-void initialize()
-{
-  int i, j, k, m, ix, iy, iz;
+  int m, ix, iy, iz;
   double xi, eta, zeta, Pface[2][3][5], Pxi, Peta, Pzeta, temp[5];
 
   //---------------------------------------------------------------------
@@ -50,9 +51,9 @@ void initialize()
   //  to compute the whole thing with a simple loop. Make sure those 
   //  values are nonzero by initializing the whole thing here. 
   //---------------------------------------------------------------------
-  for (k = 0; k <= grid_points[2]-1; k++) {
-    for (j = 0; j <= grid_points[1]-1; j++) {
-      for (i = 0; i <= grid_points[0]-1; i++) {
+  if (k >= 0 && k <= grid_points[2]-1) {
+    if (j >= 0 && j <= grid_points[1]-1) {
+      if (i >= 0 && i <= grid_points[0]-1) {
         u[k][j][i][0] = 1.0;
         u[k][j][i][1] = 0.0;
         u[k][j][i][2] = 0.0;
@@ -65,11 +66,11 @@ void initialize()
   //---------------------------------------------------------------------
   // first store the "interpolated" values everywhere on the grid    
   //---------------------------------------------------------------------
-  for (k = 0; k <= grid_points[2]-1; k++) {
+  if (k >= 0 && k <= grid_points[2]-1) {
     zeta = (double)k * dnzm1;
-    for (j = 0; j <= grid_points[1]-1; j++) {
+    if (j >= 0 && j <= grid_points[1]-1) {
       eta = (double)j * dnym1;
-      for (i = 0; i <= grid_points[0]-1; i++) {
+      if (i >= 0 && i <= grid_points[0]-1) {
         xi = (double)i * dnxm1;
 
         for (ix = 0; ix < 2; ix++) {
@@ -109,149 +110,187 @@ void initialize()
   // west face                                                  
   //---------------------------------------------------------------------
   xi = 0.0;
-  i  = 0;
-  for (k = 0; k <= grid_points[2]-1; k++) {
-    zeta = (double)k * dnzm1;
-    for (j = 0; j <= grid_points[1]-1; j++) {
-      eta = (double)j * dnym1;
-      exact_solution(xi, eta, zeta, temp);
-      for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+  if (i == 0)
+      if (k >= 0 && k <= grid_points[2]-1) {
+        zeta = (double)k * dnzm1;
+        if (j >= 0 && j <= grid_points[1]-1) {
+          eta = (double)j * dnym1;
+          exact_solution(xi, eta, zeta, temp);
+          for (m = 0; m < 5; m++) {
+            u[k][j][i][m] = temp[m];
+          }
+        }
       }
-    }
-  }
 
   //---------------------------------------------------------------------
   // east face                                                      
   //---------------------------------------------------------------------
   xi = 1.0;
-  i  = grid_points[0]-1;
-  for (k = 0; k <= grid_points[2]-1; k++) {
-    zeta = (double)k * dnzm1;
-    for (j = 0; j <= grid_points[1]-1; j++) {
-      eta = (double)j * dnym1;
-      exact_solution(xi, eta, zeta, temp);
-      for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+  if (i == grid_points[0]-1)
+      if (k >= 0 && k <= grid_points[2]-1) {
+        zeta = (double)k * dnzm1;
+        if (j >= 0 && j <= grid_points[1]-1) {
+          eta = (double)j * dnym1;
+          exact_solution(xi, eta, zeta, temp);
+          for (m = 0; m < 5; m++) {
+            u[k][j][i][m] = temp[m];
+          }
+        }
       }
-    }
-  }
 
   //---------------------------------------------------------------------
   // south face                                                 
   //---------------------------------------------------------------------
   eta = 0.0;
-  j   = 0;
-  for (k = 0; k <= grid_points[2]-1; k++) {
-    zeta = (double)k * dnzm1;
-    for (i = 0; i <= grid_points[0]-1; i++) {
-      xi = (double)i * dnxm1;
-      exact_solution(xi, eta, zeta, temp);
-      for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+  if (j == 0)
+      if (k >= 0 && k <= grid_points[2]-1) {
+        zeta = (double)k * dnzm1;
+        if (i >= 0 && i <= grid_points[0]-1) {
+          xi = (double)i * dnxm1;
+          exact_solution(xi, eta, zeta, temp);
+          for (m = 0; m < 5; m++) {
+            u[k][j][i][m] = temp[m];
+          }
+        }
       }
-    }
-  }
 
   //---------------------------------------------------------------------
   // north face                                    
   //---------------------------------------------------------------------
   eta = 1.0;
-  j   = grid_points[1]-1;
-  for (k = 0; k <= grid_points[2]-1; k++) {
-    zeta = (double)k * dnzm1;
-    for (i = 0; i <= grid_points[0]-1; i++) {
-      xi = (double)i * dnxm1;
-      exact_solution(xi, eta, zeta, temp);
-      for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+  if (j == grid_points[1]-1)
+      if (k >= 0 && k <= grid_points[2]-1) {
+        zeta = (double)k * dnzm1;
+        if (i >= 0 && i <= grid_points[0]-1) {
+          xi = (double)i * dnxm1;
+          exact_solution(xi, eta, zeta, temp);
+          for (m = 0; m < 5; m++) {
+            u[k][j][i][m] = temp[m];
+          }
+        }
       }
-    }
-  }
 
   //---------------------------------------------------------------------
   // bottom face                                       
   //---------------------------------------------------------------------
   zeta = 0.0;
-  k    = 0;
-  for (j = 0; j <= grid_points[1]-1; j++) {
-    eta = (double)j * dnym1;
-    for (i =0; i <= grid_points[0]-1; i++) {
-      xi = (double)i * dnxm1;
-      exact_solution(xi, eta, zeta, temp);
-      for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+  if (k == 0)
+      if (j >= 0 && j <= grid_points[1]-1) {
+        eta = (double)j * dnym1;
+        if (i >= 0 && i <= grid_points[0]-1) {
+          xi = (double)i * dnxm1;
+          exact_solution(xi, eta, zeta, temp);
+          for (m = 0; m < 5; m++) {
+            u[k][j][i][m] = temp[m];
+          }
+        }
       }
-    }
-  }
 
   //---------------------------------------------------------------------
   // top face     
   //---------------------------------------------------------------------
   zeta = 1.0;
-  k    = grid_points[2]-1;
-  for (j = 0; j <= grid_points[1]-1; j++) {
-    eta = (double)j * dnym1;
-    for (i =0; i <= grid_points[0]-1; i++) {
-      xi = (double)i * dnxm1;
-      exact_solution(xi, eta, zeta, temp);
-      for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+  if (k == grid_points[2]-1)
+      if (j >= 0 && j <= grid_points[1]-1) {
+        eta = (double)j * dnym1;
+        if (i >= 0 && i <= grid_points[0]-1) {
+          xi = (double)i * dnxm1;
+          exact_solution(xi, eta, zeta, temp);
+          for (m = 0; m < 5; m++) {
+            u[k][j][i][m] = temp[m];
+          }
+        }
       }
-    }
-  }
 }
-#endif
 
-void lhsinit(int ni, int nj)
-{
-  int j, m;
+__global__ void lhsinit_kernel(
+    int ni, int nj,
+    double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5],
+    double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5],
+    double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5]
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z;
+
+  int m;
 
   //---------------------------------------------------------------------
   // zap the whole left hand side for starters
   // set all diagonal values to 1. This is overkill, but convenient
   //---------------------------------------------------------------------
-  for (j = 1; j <= nj; j++) {
-    for (m = 0; m < 5; m++) {
-      lhs [j][0][m] = 0.0;
-      lhsp[j][0][m] = 0.0;
-      lhsm[j][0][m] = 0.0;
-      lhs [j][ni][m] = 0.0;
-      lhsp[j][ni][m] = 0.0;
-      lhsm[j][ni][m] = 0.0;
-    }
-    lhs [j][0][2] = 1.0;
-    lhsp[j][0][2] = 1.0;
-    lhsm[j][0][2] = 1.0;
-    lhs [j][ni][2] = 1.0;
-    lhsp[j][ni][2] = 1.0;
-    lhsm[j][ni][2] = 1.0;
-  }
+  if (i == 0 && k == 0)
+      if (j >= 1 && j <= nj) {
+        for (m = 0; m < 5; m++) {
+          lhs [j][0][m] = 0.0;
+          lhsp[j][0][m] = 0.0;
+          lhsm[j][0][m] = 0.0;
+          lhs [j][ni][m] = 0.0;
+          lhsp[j][ni][m] = 0.0;
+          lhsm[j][ni][m] = 0.0;
+        }
+        lhs [j][0][2] = 1.0;
+        lhsp[j][0][2] = 1.0;
+        lhsm[j][0][2] = 1.0;
+        lhs [j][ni][2] = 1.0;
+        lhsp[j][ni][2] = 1.0;
+        lhsm[j][ni][2] = 1.0;
+      }
 }
 
+__global__ void lhsinitj_kernel(
+    int nj, int ni,
+    double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5],
+    double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5],
+    double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5]
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z;
 
-void lhsinitj(int nj, int ni)
-{
-  int i, m;
+  int m;
 
   //---------------------------------------------------------------------
   // zap the whole left hand side for starters
   // set all diagonal values to 1. This is overkill, but convenient
   //---------------------------------------------------------------------
-  for (i = 1; i <= ni; i++) {
-    for (m = 0; m < 5; m++) {
-      lhs [0][i][m] = 0.0;
-      lhsp[0][i][m] = 0.0;
-      lhsm[0][i][m] = 0.0;
-      lhs [nj][i][m] = 0.0;
-      lhsp[nj][i][m] = 0.0;
-      lhsm[nj][i][m] = 0.0;
-    }
-    lhs [0][i][2] = 1.0;
-    lhsp[0][i][2] = 1.0;
-    lhsm[0][i][2] = 1.0;
-    lhs [nj][i][2] = 1.0;
-    lhsp[nj][i][2] = 1.0;
-    lhsm[nj][i][2] = 1.0;
-  }
+  if (j == 0 && k == 0)
+      if (i >= 1 && i <= ni) {
+        for (m = 0; m < 5; m++) {
+          lhs [0][i][m] = 0.0;
+          lhsp[0][i][m] = 0.0;
+          lhsm[0][i][m] = 0.0;
+          lhs [nj][i][m] = 0.0;
+          lhsp[nj][i][m] = 0.0;
+          lhsm[nj][i][m] = 0.0;
+        }
+        lhs [0][i][2] = 1.0;
+        lhsp[0][i][2] = 1.0;
+        lhsm[0][i][2] = 1.0;
+        lhs [nj][i][2] = 1.0;
+        lhsp[nj][i][2] = 1.0;
+        lhsm[nj][i][2] = 1.0;
+      }
+}
+
+//---------------------------------------------------------------------
+// This subroutine initializes the field variable u using 
+// tri-linear transfinite interpolation of the boundary values     
+//---------------------------------------------------------------------
+void initialize()
+{
+    iinitialize_kernel <<< gridDim, blockDim >>> (grid_points, u, dnxm1, dnym1, dnzm1);
+    assert(cudaSuccess == cudaDeviceSynchronize());
+}
+
+
+void lhsinit_(int ni, int nj)
+{
+    lhsinit_kernel <<< gridDim, blockDim >>> (ni, nj, lhs, lhsp, lhsm);
+}
+
+
+void lhsinitj_(int nj, int ni)
+{
+    lhsinitj_kernel <<< gridDim, blockDim >>> (nj, ni, lhs, lhsp, lhsm);
 }

@@ -12,6 +12,9 @@
 
 void allocate()
 {
+/* common /global/ */
+    ALLOCATE(grid_points, 3);
+
 /* common /fields/ */
     ALLOCATE(u, KMAX);
     ALLOCATE(us, KMAX);

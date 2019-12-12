@@ -12,6 +12,9 @@
 
 void deallocate()
 {
+/* common /global/ */
+    DEALLOCATE(grid_points);
+
 /* common /fields/ */
     DEALLOCATE(u);
     DEALLOCATE(us);

@@ -42,7 +42,8 @@
 #include "print_results.h"
 
 /* common /global/ */
-int grid_points[3], nx2, ny2, nz2;
+int *grid_points/*[3]*/;
+int nx2, ny2, nz2;
 logical timeron;
 
 /* common /constants/ */
@@ -144,6 +145,15 @@ int main(int argc, char *argv[])
     grid_points[1] = PROBLEM_SIZE;
     grid_points[2] = PROBLEM_SIZE;
   }
+
+#ifdef NEED_CUDA
+  blockDim = dim3(8, 8, 8);
+  gridDim = dim3(
+      (grid_points[0] - 1) / blockDim.x + 1,
+      (grid_points[1] - 1) / blockDim.y + 1,
+      (grid_points[2] - 1) / blockDim.z + 1
+  );
+#endif
 
   printf(" Size: %4dx%4dx%4d\n", 
       grid_points[0], grid_points[1], grid_points[2]);

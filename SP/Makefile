@@ -14,7 +14,7 @@ OBJS = sp.o allocate.o initialize.o exact_solution.o exact_rhs.o \
        z_solve.o tzetar.o add.o txinvr.o error.o verify.o deallocate.o  \
        ${COMMON}/print_results.o ${COMMON}/c_timers.o ${COMMON}/wtime.o
 
-CUDA_OBJS = cuda_init.cpp.o rhs.cu.o
+CUDA_OBJS = cuda_init.cpp.o rhs.cu.o initialize.cu.o
 
 ifdef NEED_CUDA
 OBJS += ${CUDA_OBJS}
