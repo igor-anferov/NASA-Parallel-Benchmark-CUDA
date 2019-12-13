@@ -32,11 +32,13 @@
 //-------------------------------------------------------------------------//
 
 #include "header.h"
+#include <assert.h>
+#include "exact_solution.cu"
 
 __global__ void initialize_kernel(
     int* grid_points,
     double (*u)/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double dnxm1, dnym1, dnzm1
+    double dnxm1, double dnym1, double dnzm1
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -279,18 +281,18 @@ __global__ void lhsinitj_kernel(
 //---------------------------------------------------------------------
 void initialize()
 {
-    iinitialize_kernel <<< gridDim, blockDim >>> (grid_points, u, dnxm1, dnym1, dnzm1);
+    initialize_kernel <<< gridDim_, blockDim_ >>> (grid_points, u, dnxm1, dnym1, dnzm1);
     assert(cudaSuccess == cudaDeviceSynchronize());
 }
 
 
 void lhsinit_(int ni, int nj)
 {
-    lhsinit_kernel <<< gridDim, blockDim >>> (ni, nj, lhs, lhsp, lhsm);
+    lhsinit_kernel <<< gridDim_, blockDim_ >>> (ni, nj, lhs, lhsp, lhsm);
 }
 
 
 void lhsinitj_(int nj, int ni)
 {
-    lhsinitj_kernel <<< gridDim, blockDim >>> (nj, ni, lhs, lhsp, lhsm);
+    lhsinitj_kernel <<< gridDim_, blockDim_ >>> (nj, ni, lhs, lhsp, lhsm);
 }

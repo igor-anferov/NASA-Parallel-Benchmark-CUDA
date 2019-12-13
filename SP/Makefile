@@ -17,6 +17,7 @@ OBJS = sp.o allocate.o initialize.o exact_solution.o exact_rhs.o \
 CUDA_OBJS = cuda_init.cpp.o rhs.cu.o initialize.cu.o
 
 ifdef NEED_CUDA
+DEVICE_CC += -DNEED_CUDA
 OBJS += ${CUDA_OBJS}
 endif
 
@@ -34,7 +35,7 @@ ${PROGRAM}: config ${OBJS}
 	${CLINK} ${CLINKFLAGS} -o ${PROGRAM} ${OBJS} ${C_LIB}
 
 %.cu.o: %.cu  header.h npbparams.h
-	${DEVICE_CC} -arch ${ARCH} ${C_INC} $< -c -o $@
+	${DEVICE_CC} -g -O3 -arch ${ARCH} ${C_INC} $< -c -o $@
 
 %.o: %.c  header.h npbparams.h
 	${CCOMPILE} $< -o $@

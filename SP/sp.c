@@ -147,12 +147,7 @@ int main(int argc, char *argv[])
   }
 
 #ifdef NEED_CUDA
-  blockDim = dim3(8, 8, 8);
-  gridDim = dim3(
-      (grid_points[0] - 1) / blockDim.x + 1,
-      (grid_points[1] - 1) / blockDim.y + 1,
-      (grid_points[2] - 1) / blockDim.z + 1
-  );
+  cuda_init_sizes();
 #endif
 
   printf(" Size: %4dx%4dx%4d\n", 

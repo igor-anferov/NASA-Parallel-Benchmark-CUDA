@@ -37,8 +37,8 @@
 // this function returns the exact solution at point xi, eta, zeta  
 //---------------------------------------------------------------------
 
-#ifdef __CUDA_ARCH__
-__global__
+#ifdef __NVCC__
+__device__ __attribute__((weak))
 #endif
 void exact_solution(double xi, double eta, double zeta, double dtemp[5])
 {

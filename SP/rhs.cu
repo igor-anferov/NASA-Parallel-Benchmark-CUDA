@@ -474,7 +474,7 @@ void compute_rhs()
 {
   if (timeron) timer_start(t_rhs);
 
-  compute_rhs_intro <<< gridDim, blockDim >>> (
+  compute_rhs_intro <<< gridDim_, blockDim_ >>> (
     grid_points, u, us, vs, ws, qs, rho_i, speed, square, rhs, forcing 
   );
 
@@ -482,7 +482,7 @@ void compute_rhs()
   // compute xi-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsx);
-  compute_rhsx <<< gridDim, blockDim >>> (
+  compute_rhsx <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, u, us, vs, ws, qs, rho_i, square, rhs, dx1tx1, dx2tx1, dx3tx1, dx4tx1, dx5tx1, tx2, xxcon2, xxcon3, xxcon4, xxcon5
   );
   if (timeron) timer_stop(t_rhsx);
@@ -491,7 +491,7 @@ void compute_rhs()
   // compute eta-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsy);
-  compute_rhsy <<< gridDim, blockDim >>> (
+  compute_rhsy <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, u, us, vs, ws, qs, rho_i, square, rhs, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1, ty2, yycon2, yycon3, yycon4, yycon5
   );
   if (timeron) timer_stop(t_rhsy);
@@ -500,12 +500,12 @@ void compute_rhs()
   // compute zeta-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsz);
-  compute_rhsz <<< gridDim, blockDim >>> (
+  compute_rhsz <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, u, us, vs, ws, qs, rho_i, square, rhs, dz1tz1, dz2tz1, dz3tz1, dz4tz1, dz5tz1, tz2, zzcon2, zzcon3, zzcon4, zzcon5
   );
   if (timeron) timer_stop(t_rhsz);
 
-  compute_rhs_tail <<< gridDim, blockDim >>> (
+  compute_rhs_tail <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, u, us, vs, ws, qs, rho_i, square, rhs, dt
   );
 

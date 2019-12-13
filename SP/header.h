@@ -39,11 +39,15 @@
 //                     config file
 //      niter_default: default number of iterations for this problem size
 //---------------------------------------------------------------------
+#pragma once
 
 #include "npbparams.h"
 #include "type.h"
 
 #include "timers.h"
+#ifdef NEED_CUDA
+#include <cuda_runtime.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,11 +59,11 @@ extern int nx2, ny2, nz2;
 extern logical timeron;
 
 #ifdef NEED_CUDA
-extern dim3 blockDim;
-extern dim3 gridDim;
+extern dim3 blockDim_;
+extern dim3 gridDim_;
 #endif
 
-#ifdef __CUDA_ARCH__
+#ifdef __NVCC__
 __device__
 #endif
 static const double ce[5][13] = {
@@ -189,13 +193,14 @@ extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
 //-----------------------------------------------------------------------
 #ifdef NEED_CUDA
 void cuda_init();
+void cuda_init_sizes();
 #endif
 void allocate();
 void initialize();
 void lhsinit(int ni, int nj);
 void lhsinitj(int nj, int ni);
-#ifdef __CUDA_ARCH__
-__global__
+#ifdef __NVCC__
+__device__
 #endif
 void exact_solution(double xi, double eta, double zeta, double dtemp[5]);
 void exact_rhs();
