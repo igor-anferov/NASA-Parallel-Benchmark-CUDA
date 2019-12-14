@@ -1,6 +1,6 @@
 #include "header.h"
 
-__device__ void lhsinit_kernel(
+__device__ __attribute__((weak)) void lhsinit_kernel(
     int ni, int nj,
     double (*lhs )/*[IMAXP+1]*/[5],
     double (*lhsp)/*[IMAXP+1]*/[5],
@@ -28,7 +28,7 @@ __device__ void lhsinit_kernel(
   lhsm[ni][2] = 1.0;
 }
 
-__device__ void lhsinitj_kernel(
+__device__ __attribute__((weak)) void lhsinitj_kernel(
     int nj, int ni,
     double (*lhs )/*[IMAXP+1]*/[5],
     double (*lhsp)/*[IMAXP+1]*/[5],

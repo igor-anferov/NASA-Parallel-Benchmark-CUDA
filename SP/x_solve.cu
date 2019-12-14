@@ -31,7 +31,6 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#include <stdio.h>
 #include <assert.h>
 #include "header.h"
 #include "initialize_kernels.cu"
@@ -313,7 +312,7 @@ __global__ void x_solve_kernel(
 
 void x_solve() {
   if (timeron) timer_start(t_xsolve);
-  x_solve_kernel <<< gridDimZY, blockDimZY >>> (
+  x_solve_kernel <<< gridDimYZ, blockDimYZ >>> (
     grid_points,
     nx2, ny2, nz2,
     us, rho_i, speed, rhs,
