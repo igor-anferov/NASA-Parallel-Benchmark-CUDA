@@ -20,12 +20,7 @@ dim3 gridDimXZ;
 void cuda_init()
 {
     int device = 0;
-    assert(cudaSuccess == cudaSetDeviceFlags(cudaDeviceMapHost));
     assert(cudaSuccess == cudaSetDevice(device));
-    cudaDeviceProp deviceProp;
-    cudaGetDeviceProperties(&deviceProp, device);
-    assert(deviceProp.canMapHostMemory);
-    assert(deviceProp.unifiedAddressing);
 }
 
 void cuda_init_sizes()

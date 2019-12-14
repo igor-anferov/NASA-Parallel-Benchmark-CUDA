@@ -56,6 +56,7 @@ void verify(int no_time_steps, char *Class, logical *verified)
   //---------------------------------------------------------------------
   error_norm(xce);
   compute_rhs();
+  cuda_memcpy_device_to_host();
 
   rhs_norm(xcr);
 
