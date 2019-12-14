@@ -184,7 +184,7 @@ __global__ void compute_rhsx(
       }
     }
 
-    if (j = 1 && j <= ny2) {
+    if (j >= 1 && j <= ny2) {
       if (i == nx2-1)
 #pragma unroll
           for (m = 0; m < 5; m++) {
