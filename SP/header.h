@@ -61,6 +61,15 @@ extern logical timeron;
 #ifdef NEED_CUDA
 extern dim3 blockDim_;
 extern dim3 gridDim_;
+
+extern dim3 blockDimZY;
+extern dim3 gridDimZY;
+
+extern dim3 blockDimYX;
+extern dim3 gridDimYX;
+
+extern dim3 blockDimXZ;
+extern dim3 gridDimXZ;
 #endif
 
 #ifdef __NVCC__
