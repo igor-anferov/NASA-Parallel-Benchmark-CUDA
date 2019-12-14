@@ -31,22 +31,31 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#ifndef NEED_CUDA
-
+#include <assert.h>
 #include "header.h"
 
 //---------------------------------------------------------------------
 // block-diagonal matrix-vector multiplication                  
 //---------------------------------------------------------------------
-void txinvr()
-{
-  int i, j, k;
+__global__ void txinvr_kernel(
+    int nx2, int ny2, int nz2,
+    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z;
+
   double t1, t2, t3, ac, ru1, uu, vv, ww, r1, r2, r3, r4, r5, ac2inv;
 
-  if (timeron) timer_start(t_txinvr);
-  for (k = 1; k <= nz2; k++) {
-    for (j = 1; j <= ny2; j++) {
-      for (i = 1; i <= nx2; i++) {
+  if (k >= 1 && k <= nz2) {
+    if (j >= 1 && j <= ny2) {
+      if (i >= 1 && i <= nx2) {
         ru1 = rho_i[k][j][i];
         uu = us[k][j][i];
         vv = vs[k][j][i];
@@ -72,7 +81,15 @@ void txinvr()
       }
     }
   }
+}
+
+void txinvr()
+{
+  if (timeron) timer_start(t_txinvr);
+  txinvr_kernel <<< gridDim_, blockDim_ >>> (
+    nx2, ny2, nz2, us, vs, ws, qs, rho_i, speed, rhs
+  );
+  assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_txinvr);
 }
 
-#endif
