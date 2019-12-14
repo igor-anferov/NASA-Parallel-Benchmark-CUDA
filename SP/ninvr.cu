@@ -31,6 +31,7 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
+#include <assert.h>
 #include "header.h"
 
 //---------------------------------------------------------------------
@@ -45,7 +46,6 @@ __global__ void ninvr_kernel(
   int k = blockDim.z * blockIdx.z + threadIdx.z;
   double r1, r2, r3, r4, r5, t1, t2;
 
-  //if (timeron) timer_start(t_ninvr);
   if (k >= 1 && k <= nz2) {
     if (j >= 1 && j <= ny2) {
       if (i >= 1 && i <= nx2) {
@@ -66,11 +66,13 @@ __global__ void ninvr_kernel(
       }
     }
   }
-  //if (timeron) timer_stop(t_ninvr);
 }
 
 void ninvr() {
+  if (timeron) timer_start(t_ninvr);
   ninvr_kernel <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, rhs
   );
+  if (timeron) timer_stop(t_ninvr);
+  assert(cudaSuccess == cudaDeviceSynchronize());
 }

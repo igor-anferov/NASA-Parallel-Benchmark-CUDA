@@ -31,6 +31,7 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
+#include <assert.h>
 #include "header.h"
 #include "initialize_kernels.cu"
 
@@ -324,6 +325,7 @@ void x_solve() {
     dttx1, dttx2, comz1, comz4, comz5, comz6, c2dttx1
   );
   if (timeron) timer_stop(t_xsolve);
+  assert(cudaSuccess == cudaDeviceSynchronize());
 
   //---------------------------------------------------------------------
   // Do the block-diagonal inversion          
