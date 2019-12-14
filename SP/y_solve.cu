@@ -31,9 +31,9 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#ifndef NEED_CUDA
-
+#include <assert.h>
 #include "header.h"
+#include "initialize_kernels.cu"
 
 //---------------------------------------------------------------------
 // this function performs the solution of the approximate factorization
@@ -41,15 +41,29 @@
 // simultaneously. The Thomas algorithm is employed to solve the
 // systems for the y-lines. Boundary conditions are non-periodic
 //---------------------------------------------------------------------
+__global__ void y_solve_kernel(
+    int *grid_points/*[3]*/,
+    int nx2, int ny2, int nz2,
+    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double dtty1, double dtty2, double comz1, double comz4, double comz5, double comz6, double c2dtty1
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int k = blockDim.z * blockIdx.z + threadIdx.z;
 
-void y_solve()
-{
-  int i, j, k, j1, j2, m;
+  double cv  [PROBLEM_SIZE];
+  double rhoq[PROBLEM_SIZE];
+  double lhs [IMAXP+1][5];
+  double lhsp[IMAXP+1][5];
+  double lhsm[IMAXP+1][5];
+
+  int j, j1, j2, m;
   double ru1, fac1, fac2;
 
-  if (timeron) timer_start(t_ysolve);
-  for (k = 1; k <= grid_points[2]-2; k++) {
-    lhsinitj(ny2+1, nx2);
+  if (k >= 1 && k <= grid_points[2]-2) {
+    lhsinitj_kernel(ny2+1, nx2, lhs, lhsp, lhsm);
 
     //---------------------------------------------------------------------
     // Computes the left hand side for the three y-factors   
@@ -58,7 +72,7 @@ void y_solve()
     //---------------------------------------------------------------------
     // first fill the lhs for the u-eigenvalue         
     //---------------------------------------------------------------------
-    for (i = 1; i <= grid_points[0]-2; i++) {
+    if (i >= 1 && i <= grid_points[0]-2) {
       for (j = 0; j <= grid_points[1]-1; j++) {
         ru1 = c3c4*rho_i[k][j][i];
         cv[j] = vs[k][j][i];
@@ -66,66 +80,66 @@ void y_solve()
       }
 
       for (j = 1; j <= grid_points[1]-2; j++) {
-        lhs[j][i][0] =  0.0;
-        lhs[j][i][1] = -dtty2 * cv[j-1] - dtty1 * rhoq[j-1];
-        lhs[j][i][2] =  1.0 + c2dtty1 * rhoq[j];
-        lhs[j][i][3] =  dtty2 * cv[j+1] - dtty1 * rhoq[j+1];
-        lhs[j][i][4] =  0.0;
+        lhs[j][0] =  0.0;
+        lhs[j][1] = -dtty2 * cv[j-1] - dtty1 * rhoq[j-1];
+        lhs[j][2] =  1.0 + c2dtty1 * rhoq[j];
+        lhs[j][3] =  dtty2 * cv[j+1] - dtty1 * rhoq[j+1];
+        lhs[j][4] =  0.0;
       }
     }
 
     //---------------------------------------------------------------------
     // add fourth order dissipation                             
     //---------------------------------------------------------------------
-    for (i = 1; i <= grid_points[0]-2; i++) {
+    if (i >= 1 && i <= grid_points[0]-2) {
       j = 1;
-      lhs[j][i][2] = lhs[j][i][2] + comz5;
-      lhs[j][i][3] = lhs[j][i][3] - comz4;
-      lhs[j][i][4] = lhs[j][i][4] + comz1;
+      lhs[j][2] = lhs[j][2] + comz5;
+      lhs[j][3] = lhs[j][3] - comz4;
+      lhs[j][4] = lhs[j][4] + comz1;
 
-      lhs[j+1][i][1] = lhs[j+1][i][1] - comz4;
-      lhs[j+1][i][2] = lhs[j+1][i][2] + comz6;
-      lhs[j+1][i][3] = lhs[j+1][i][3] - comz4;
-      lhs[j+1][i][4] = lhs[j+1][i][4] + comz1;
+      lhs[j+1][1] = lhs[j+1][1] - comz4;
+      lhs[j+1][2] = lhs[j+1][2] + comz6;
+      lhs[j+1][3] = lhs[j+1][3] - comz4;
+      lhs[j+1][4] = lhs[j+1][4] + comz1;
     }
 
     for (j = 3; j <= grid_points[1]-4; j++) {
-      for (i = 1; i <= grid_points[0]-2; i++) {
-        lhs[j][i][0] = lhs[j][i][0] + comz1;
-        lhs[j][i][1] = lhs[j][i][1] - comz4;
-        lhs[j][i][2] = lhs[j][i][2] + comz6;
-        lhs[j][i][3] = lhs[j][i][3] - comz4;
-        lhs[j][i][4] = lhs[j][i][4] + comz1;
+      if (i >= 1 && i <= grid_points[0]-2) {
+        lhs[j][0] = lhs[j][0] + comz1;
+        lhs[j][1] = lhs[j][1] - comz4;
+        lhs[j][2] = lhs[j][2] + comz6;
+        lhs[j][3] = lhs[j][3] - comz4;
+        lhs[j][4] = lhs[j][4] + comz1;
       }
     }
 
-    for (i = 1; i <= grid_points[0]-2; i++) {
+    if (i >= 1 && i <= grid_points[0]-2) {
       j = grid_points[1]-3;
-      lhs[j][i][0] = lhs[j][i][0] + comz1;
-      lhs[j][i][1] = lhs[j][i][1] - comz4;
-      lhs[j][i][2] = lhs[j][i][2] + comz6;
-      lhs[j][i][3] = lhs[j][i][3] - comz4;
+      lhs[j][0] = lhs[j][0] + comz1;
+      lhs[j][1] = lhs[j][1] - comz4;
+      lhs[j][2] = lhs[j][2] + comz6;
+      lhs[j][3] = lhs[j][3] - comz4;
 
-      lhs[j+1][i][0] = lhs[j+1][i][0] + comz1;
-      lhs[j+1][i][1] = lhs[j+1][i][1] - comz4;
-      lhs[j+1][i][2] = lhs[j+1][i][2] + comz5;
+      lhs[j+1][0] = lhs[j+1][0] + comz1;
+      lhs[j+1][1] = lhs[j+1][1] - comz4;
+      lhs[j+1][2] = lhs[j+1][2] + comz5;
     }
 
     //---------------------------------------------------------------------
     // subsequently, for (the other two factors                    
     //---------------------------------------------------------------------
     for (j = 1; j <= grid_points[1]-2; j++) {
-      for (i = 1; i <= grid_points[0]-2; i++) {
-        lhsp[j][i][0] = lhs[j][i][0];
-        lhsp[j][i][1] = lhs[j][i][1] - dtty2 * speed[k][j-1][i];
-        lhsp[j][i][2] = lhs[j][i][2];
-        lhsp[j][i][3] = lhs[j][i][3] + dtty2 * speed[k][j+1][i];
-        lhsp[j][i][4] = lhs[j][i][4];
-        lhsm[j][i][0] = lhs[j][i][0];
-        lhsm[j][i][1] = lhs[j][i][1] + dtty2 * speed[k][j-1][i];
-        lhsm[j][i][2] = lhs[j][i][2];
-        lhsm[j][i][3] = lhs[j][i][3] - dtty2 * speed[k][j+1][i];
-        lhsm[j][i][4] = lhs[j][i][4];
+      if (i >= 1 && i <= grid_points[0]-2) {
+        lhsp[j][0] = lhs[j][0];
+        lhsp[j][1] = lhs[j][1] - dtty2 * speed[k][j-1][i];
+        lhsp[j][2] = lhs[j][2];
+        lhsp[j][3] = lhs[j][3] + dtty2 * speed[k][j+1][i];
+        lhsp[j][4] = lhs[j][4];
+        lhsm[j][0] = lhs[j][0];
+        lhsm[j][1] = lhs[j][1] + dtty2 * speed[k][j-1][i];
+        lhsm[j][2] = lhs[j][2];
+        lhsm[j][3] = lhs[j][3] - dtty2 * speed[k][j+1][i];
+        lhsm[j][4] = lhs[j][4];
       }
     }
 
@@ -136,22 +150,22 @@ void y_solve()
     for (j = 0; j <= grid_points[1]-3; j++) {
       j1 = j + 1;
       j2 = j + 2;
-      for (i = 1; i <= grid_points[0]-2; i++) {
-        fac1 = 1.0/lhs[j][i][2];
-        lhs[j][i][3] = fac1*lhs[j][i][3];
-        lhs[j][i][4] = fac1*lhs[j][i][4];
+      if (i >= 1 && i <= grid_points[0]-2) {
+        fac1 = 1.0/lhs[j][2];
+        lhs[j][3] = fac1*lhs[j][3];
+        lhs[j][4] = fac1*lhs[j][4];
         for (m = 0; m < 3; m++) {
           rhs[k][j][i][m] = fac1*rhs[k][j][i][m];
         }
-        lhs[j1][i][2] = lhs[j1][i][2] - lhs[j1][i][1]*lhs[j][i][3];
-        lhs[j1][i][3] = lhs[j1][i][3] - lhs[j1][i][1]*lhs[j][i][4];
+        lhs[j1][2] = lhs[j1][2] - lhs[j1][1]*lhs[j][3];
+        lhs[j1][3] = lhs[j1][3] - lhs[j1][1]*lhs[j][4];
         for (m = 0; m < 3; m++) {
-          rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhs[j1][i][1]*rhs[k][j][i][m];
+          rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhs[j1][1]*rhs[k][j][i][m];
         }
-        lhs[j2][i][1] = lhs[j2][i][1] - lhs[j2][i][0]*lhs[j][i][3];
-        lhs[j2][i][2] = lhs[j2][i][2] - lhs[j2][i][0]*lhs[j][i][4];
+        lhs[j2][1] = lhs[j2][1] - lhs[j2][0]*lhs[j][3];
+        lhs[j2][2] = lhs[j2][2] - lhs[j2][0]*lhs[j][4];
         for (m = 0; m < 3; m++) {
-          rhs[k][j2][i][m] = rhs[k][j2][i][m] - lhs[j2][i][0]*rhs[k][j][i][m];
+          rhs[k][j2][i][m] = rhs[k][j2][i][m] - lhs[j2][0]*rhs[k][j][i][m];
         }
       }
     }
@@ -163,22 +177,22 @@ void y_solve()
     //---------------------------------------------------------------------
     j  = grid_points[1]-2;
     j1 = grid_points[1]-1;
-    for (i = 1; i <= grid_points[0]-2; i++) {
-      fac1 = 1.0/lhs[j][i][2];
-      lhs[j][i][3] = fac1*lhs[j][i][3];
-      lhs[j][i][4] = fac1*lhs[j][i][4];
+    if (i >= 1 && i <= grid_points[0]-2) {
+      fac1 = 1.0/lhs[j][2];
+      lhs[j][3] = fac1*lhs[j][3];
+      lhs[j][4] = fac1*lhs[j][4];
       for (m = 0; m < 3; m++) {
         rhs[k][j][i][m] = fac1*rhs[k][j][i][m];
       }
-      lhs[j1][i][2] = lhs[j1][i][2] - lhs[j1][i][1]*lhs[j][i][3];
-      lhs[j1][i][3] = lhs[j1][i][3] - lhs[j1][i][1]*lhs[j][i][4];
+      lhs[j1][2] = lhs[j1][2] - lhs[j1][1]*lhs[j][3];
+      lhs[j1][3] = lhs[j1][3] - lhs[j1][1]*lhs[j][4];
       for (m = 0; m < 3; m++) {
-        rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhs[j1][i][1]*rhs[k][j][i][m];
+        rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhs[j1][1]*rhs[k][j][i][m];
       }
       //---------------------------------------------------------------------
       // scale the last row immediately 
       //---------------------------------------------------------------------
-      fac2 = 1.0/lhs[j1][i][2];
+      fac2 = 1.0/lhs[j1][2];
       for (m = 0; m < 3; m++) {
         rhs[k][j1][i][m] = fac2*rhs[k][j1][i][m];
       }
@@ -190,30 +204,30 @@ void y_solve()
     for (j = 0; j <= grid_points[1]-3; j++) {
       j1 = j + 1;
       j2 = j + 2;
-      for (i = 1; i <= grid_points[0]-2; i++) {
+      if (i >= 1 && i <= grid_points[0]-2) {
         m = 3;
-        fac1 = 1.0/lhsp[j][i][2];
-        lhsp[j][i][3]    = fac1*lhsp[j][i][3];
-        lhsp[j][i][4]    = fac1*lhsp[j][i][4];
+        fac1 = 1.0/lhsp[j][2];
+        lhsp[j][3]    = fac1*lhsp[j][3];
+        lhsp[j][4]    = fac1*lhsp[j][4];
         rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
-        lhsp[j1][i][2]   = lhsp[j1][i][2] - lhsp[j1][i][1]*lhsp[j][i][3];
-        lhsp[j1][i][3]   = lhsp[j1][i][3] - lhsp[j1][i][1]*lhsp[j][i][4];
-        rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhsp[j1][i][1]*rhs[k][j][i][m];
-        lhsp[j2][i][1]   = lhsp[j2][i][1] - lhsp[j2][i][0]*lhsp[j][i][3];
-        lhsp[j2][i][2]   = lhsp[j2][i][2] - lhsp[j2][i][0]*lhsp[j][i][4];
-        rhs[k][j2][i][m] = rhs[k][j2][i][m] - lhsp[j2][i][0]*rhs[k][j][i][m];
+        lhsp[j1][2]   = lhsp[j1][2] - lhsp[j1][1]*lhsp[j][3];
+        lhsp[j1][3]   = lhsp[j1][3] - lhsp[j1][1]*lhsp[j][4];
+        rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhsp[j1][1]*rhs[k][j][i][m];
+        lhsp[j2][1]   = lhsp[j2][1] - lhsp[j2][0]*lhsp[j][3];
+        lhsp[j2][2]   = lhsp[j2][2] - lhsp[j2][0]*lhsp[j][4];
+        rhs[k][j2][i][m] = rhs[k][j2][i][m] - lhsp[j2][0]*rhs[k][j][i][m];
 
         m = 4;
-        fac1 = 1.0/lhsm[j][i][2];
-        lhsm[j][i][3]    = fac1*lhsm[j][i][3];
-        lhsm[j][i][4]    = fac1*lhsm[j][i][4];
+        fac1 = 1.0/lhsm[j][2];
+        lhsm[j][3]    = fac1*lhsm[j][3];
+        lhsm[j][4]    = fac1*lhsm[j][4];
         rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
-        lhsm[j1][i][2]   = lhsm[j1][i][2] - lhsm[j1][i][1]*lhsm[j][i][3];
-        lhsm[j1][i][3]   = lhsm[j1][i][3] - lhsm[j1][i][1]*lhsm[j][i][4];
-        rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhsm[j1][i][1]*rhs[k][j][i][m];
-        lhsm[j2][i][1]   = lhsm[j2][i][1] - lhsm[j2][i][0]*lhsm[j][i][3];
-        lhsm[j2][i][2]   = lhsm[j2][i][2] - lhsm[j2][i][0]*lhsm[j][i][4];
-        rhs[k][j2][i][m] = rhs[k][j2][i][m] - lhsm[j2][i][0]*rhs[k][j][i][m];
+        lhsm[j1][2]   = lhsm[j1][2] - lhsm[j1][1]*lhsm[j][3];
+        lhsm[j1][3]   = lhsm[j1][3] - lhsm[j1][1]*lhsm[j][4];
+        rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhsm[j1][1]*rhs[k][j][i][m];
+        lhsm[j2][1]   = lhsm[j2][1] - lhsm[j2][0]*lhsm[j][3];
+        lhsm[j2][2]   = lhsm[j2][2] - lhsm[j2][0]*lhsm[j][4];
+        rhs[k][j2][i][m] = rhs[k][j2][i][m] - lhsm[j2][0]*rhs[k][j][i][m];
       }
     }
 
@@ -222,30 +236,30 @@ void y_solve()
     //---------------------------------------------------------------------
     j  = grid_points[1]-2;
     j1 = grid_points[1]-1;
-    for (i = 1; i <= grid_points[0]-2; i++) {
+    if (i >= 1 && i <= grid_points[0]-2) {
       m = 3;
-      fac1 = 1.0/lhsp[j][i][2];
-      lhsp[j][i][3]    = fac1*lhsp[j][i][3];
-      lhsp[j][i][4]    = fac1*lhsp[j][i][4];
+      fac1 = 1.0/lhsp[j][2];
+      lhsp[j][3]    = fac1*lhsp[j][3];
+      lhsp[j][4]    = fac1*lhsp[j][4];
       rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
-      lhsp[j1][i][2]   = lhsp[j1][i][2] - lhsp[j1][i][1]*lhsp[j][i][3];
-      lhsp[j1][i][3]   = lhsp[j1][i][3] - lhsp[j1][i][1]*lhsp[j][i][4];
-      rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhsp[j1][i][1]*rhs[k][j][i][m];
+      lhsp[j1][2]   = lhsp[j1][2] - lhsp[j1][1]*lhsp[j][3];
+      lhsp[j1][3]   = lhsp[j1][3] - lhsp[j1][1]*lhsp[j][4];
+      rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhsp[j1][1]*rhs[k][j][i][m];
 
       m = 4;
-      fac1 = 1.0/lhsm[j][i][2];
-      lhsm[j][i][3]    = fac1*lhsm[j][i][3];
-      lhsm[j][i][4]    = fac1*lhsm[j][i][4];
+      fac1 = 1.0/lhsm[j][2];
+      lhsm[j][3]    = fac1*lhsm[j][3];
+      lhsm[j][4]    = fac1*lhsm[j][4];
       rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
-      lhsm[j1][i][2]   = lhsm[j1][i][2] - lhsm[j1][i][1]*lhsm[j][i][3];
-      lhsm[j1][i][3]   = lhsm[j1][i][3] - lhsm[j1][i][1]*lhsm[j][i][4];
-      rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhsm[j1][i][1]*rhs[k][j][i][m];
+      lhsm[j1][2]   = lhsm[j1][2] - lhsm[j1][1]*lhsm[j][3];
+      lhsm[j1][3]   = lhsm[j1][3] - lhsm[j1][1]*lhsm[j][4];
+      rhs[k][j1][i][m] = rhs[k][j1][i][m] - lhsm[j1][1]*rhs[k][j][i][m];
 
       //---------------------------------------------------------------------
       // Scale the last row immediately 
       //---------------------------------------------------------------------
-      rhs[k][j1][i][3]   = rhs[k][j1][i][3]/lhsp[j1][i][2];
-      rhs[k][j1][i][4]   = rhs[k][j1][i][4]/lhsm[j1][i][2];
+      rhs[k][j1][i][3]   = rhs[k][j1][i][3]/lhsp[j1][2];
+      rhs[k][j1][i][4]   = rhs[k][j1][i][4]/lhsm[j1][2];
     }
 
 
@@ -254,13 +268,13 @@ void y_solve()
     //---------------------------------------------------------------------
     j  = grid_points[1]-2;
     j1 = grid_points[1]-1;
-    for (i = 1; i <= grid_points[0]-2; i++) {
+    if (i >= 1 && i <= grid_points[0]-2) {
       for (m = 0; m < 3; m++) {
-        rhs[k][j][i][m] = rhs[k][j][i][m] - lhs[j][i][3]*rhs[k][j1][i][m];
+        rhs[k][j][i][m] = rhs[k][j][i][m] - lhs[j][3]*rhs[k][j1][i][m];
       }
 
-      rhs[k][j][i][3] = rhs[k][j][i][3] - lhsp[j][i][3]*rhs[k][j1][i][3];
-      rhs[k][j][i][4] = rhs[k][j][i][4] - lhsm[j][i][3]*rhs[k][j1][i][4];
+      rhs[k][j][i][3] = rhs[k][j][i][3] - lhsp[j][3]*rhs[k][j1][i][3];
+      rhs[k][j][i][4] = rhs[k][j][i][4] - lhsm[j][3]*rhs[k][j1][i][4];
     }
 
     //---------------------------------------------------------------------
@@ -269,28 +283,37 @@ void y_solve()
     for (j = grid_points[1]-3; j >= 0; j--) {
       j1 = j + 1;
       j2 = j + 2;
-      for (i = 1; i <= grid_points[0]-2; i++) {
+      if (i >= 1 && i <= grid_points[0]-2) {
         for (m = 0; m < 3; m++) {
           rhs[k][j][i][m] = rhs[k][j][i][m] - 
-                            lhs[j][i][3]*rhs[k][j1][i][m] -
-                            lhs[j][i][4]*rhs[k][j2][i][m];
+                            lhs[j][3]*rhs[k][j1][i][m] -
+                            lhs[j][4]*rhs[k][j2][i][m];
         }
 
         //-------------------------------------------------------------------
         // And the remaining two
         //-------------------------------------------------------------------
         rhs[k][j][i][3] = rhs[k][j][i][3] - 
-                          lhsp[j][i][3]*rhs[k][j1][i][3] -
-                          lhsp[j][i][4]*rhs[k][j2][i][3];
+                          lhsp[j][3]*rhs[k][j1][i][3] -
+                          lhsp[j][4]*rhs[k][j2][i][3];
         rhs[k][j][i][4] = rhs[k][j][i][4] - 
-                          lhsm[j][i][3]*rhs[k][j1][i][4] -
-                          lhsm[j][i][4]*rhs[k][j2][i][4];
+                          lhsm[j][3]*rhs[k][j1][i][4] -
+                          lhsm[j][4]*rhs[k][j2][i][4];
       }
     }
   }
+}
+
+void y_solve() {
+  if (timeron) timer_start(t_ysolve);
+  y_solve_kernel <<< gridDimXZ, blockDimXZ >>> (
+    grid_points,
+    nx2, ny2, nz2,
+    vs, rho_i, speed, rhs,
+    dttz1, dttz2, comz1, comz4, comz5, comz6, c2dttz1
+  );
   if (timeron) timer_stop(t_ysolve);
+  assert(cudaSuccess == cudaDeviceSynchronize());
 
   pinvr();
 }
-
-#endif
