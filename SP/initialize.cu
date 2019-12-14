@@ -36,13 +36,14 @@
 #include "exact_solution.cu"
 
 __global__ void initialize_kernel(
+    dim3 gridOffset,
     int* grid_points,
     double (*u)/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double dnxm1, double dnym1, double dnzm1
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   int m, ix, iy, iz;
   double xi, eta, zeta, Pface[2][3][5], Pxi, Peta, Pzeta, temp[5];
@@ -211,6 +212,6 @@ __global__ void initialize_kernel(
 //---------------------------------------------------------------------
 void initialize()
 {
-    initialize_kernel <<< gridDim_, blockDim_ >>> (dev_grid_points, dev_u, dnxm1, dnym1, dnzm1);
+    initialize_kernel <<< gridDim_, blockDim_ >>> (gridOffset, dev_grid_points, dev_u, dnxm1, dnym1, dnzm1);
     assert(cudaSuccess == cudaDeviceSynchronize());
 }

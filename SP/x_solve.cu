@@ -42,6 +42,7 @@
 // systems for the x-lines. Boundary conditions are non-periodic
 //---------------------------------------------------------------------
 __global__ void x_solve_kernel(
+    dim3 gridOffset,
     int *grid_points/*[3]*/,
     int nx2, int ny2, int nz2,
     double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
@@ -50,8 +51,8 @@ __global__ void x_solve_kernel(
     double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double dttx1, double dttx2, double comz1, double comz4, double comz5, double comz6, double c2dttx1
 ) {
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   double cv  [PROBLEM_SIZE];
   double rhon[PROBLEM_SIZE];
@@ -313,6 +314,7 @@ __global__ void x_solve_kernel(
 void x_solve() {
   if (timeron) timer_start(t_xsolve);
   x_solve_kernel <<< gridDimYZ, blockDimYZ >>> (
+    gridOffset,
     dev_grid_points,
     nx2, ny2, nz2,
     dev_us, dev_rho_i, dev_speed, dev_rhs,

@@ -42,6 +42,7 @@
 // systems for the y-lines. Boundary conditions are non-periodic
 //---------------------------------------------------------------------
 __global__ void y_solve_kernel(
+    dim3 gridOffset,
     int *grid_points/*[3]*/,
     int nx2, int ny2, int nz2,
     double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
@@ -50,8 +51,8 @@ __global__ void y_solve_kernel(
     double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double dtty1, double dtty2, double comz1, double comz4, double comz5, double comz6, double c2dtty1
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   double cv  [PROBLEM_SIZE];
   double rhoq[PROBLEM_SIZE];
@@ -307,6 +308,7 @@ __global__ void y_solve_kernel(
 void y_solve() {
   if (timeron) timer_start(t_ysolve);
   y_solve_kernel <<< gridDimXZ, blockDimXZ >>> (
+    gridOffset,
     dev_grid_points,
     nx2, ny2, nz2,
     dev_vs, dev_rho_i, dev_speed, dev_rhs,

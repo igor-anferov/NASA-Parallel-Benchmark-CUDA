@@ -38,12 +38,13 @@
 // block-diagonal matrix-vector multiplication              
 //---------------------------------------------------------------------
 __global__ void ninvr_kernel(
+    dim3 gridOffset,
     int nx2, int ny2, int nz2,
     double (*rhs)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
   double r1, r2, r3, r4, r5, t1, t2;
 
   if (k >= 1 && k <= nz2) {
@@ -71,7 +72,7 @@ __global__ void ninvr_kernel(
 void ninvr() {
   if (timeron) timer_start(t_ninvr);
   ninvr_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, dev_rhs
+    gridOffset, nx2, ny2, nz2, dev_rhs
   );
   if (timeron) timer_stop(t_ninvr);
   assert(cudaSuccess == cudaDeviceSynchronize());

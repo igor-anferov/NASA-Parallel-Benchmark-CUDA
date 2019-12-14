@@ -203,6 +203,7 @@ int main(int argc, char *argv[])
 
 #ifdef NEED_CUDA
     cuda_memcpy_device_to_host();
+#pragma omp barrier
 #endif
 
     verify(niter, &Class, &verified);

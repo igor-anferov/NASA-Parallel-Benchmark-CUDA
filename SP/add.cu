@@ -38,13 +38,14 @@
 // addition of update to the vector u
 //---------------------------------------------------------------------
 __global__ void add_kernel(
+    dim3 gridOffset,
     int nx2, int ny2, int nz2,
     double (*u  )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double (*rhs)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
   int m;
 
   if (k >= 1 && k <= nz2) {
@@ -63,7 +64,7 @@ void add()
 {
   if (timeron) timer_start(t_add);
   add_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, dev_u, dev_rhs
+    gridOffset, nx2, ny2, nz2, dev_u, dev_rhs
   );
   if (timeron) timer_stop(t_add);
   assert(cudaSuccess == cudaDeviceSynchronize());

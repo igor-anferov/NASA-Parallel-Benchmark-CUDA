@@ -38,6 +38,7 @@
 // block-diagonal matrix-vector multiplication                       
 //---------------------------------------------------------------------
 __global__ void tzetar_kernel(
+    dim3 gridOffset,
     int nx2, int ny2, int nz2,
     double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
@@ -47,9 +48,9 @@ __global__ void tzetar_kernel(
     double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
     double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   double t1, t2, t3, ac, xvel, yvel, zvel, r1, r2, r3, r4, r5;
   double btuz, ac2u, uzik1;
@@ -92,7 +93,7 @@ void tzetar()
 {
   if (timeron) timer_start(t_tzetar);
   tzetar_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_speed, dev_rhs
+    gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_speed, dev_rhs
   );
   assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_tzetar);

@@ -36,6 +36,7 @@
 #include "header.h"
 
 __global__ void compute_rhs_intro(
+    dim3 gridOffset,
     int* grid_points,
     double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
@@ -48,9 +49,9 @@ __global__ void compute_rhs_intro(
     double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double (*forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   int m;
   double rho_inv, aux;
@@ -94,6 +95,7 @@ __global__ void compute_rhs_intro(
 }
 
 __global__ void compute_rhs_xi(
+    dim3 gridOffset,
     int nx2, int ny2, int nz2,
     double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
@@ -106,9 +108,9 @@ __global__ void compute_rhs_xi(
     double dx1tx1, double dx2tx1, double dx3tx1, double dx4tx1, double dx5tx1, double tx2,
     double xxcon2, double xxcon3, double xxcon4, double xxcon5
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   int m;
   double uijk, up1, um1;
@@ -204,6 +206,7 @@ __global__ void compute_rhs_xi(
 }
 
 __global__ void compute_rhs_eta(
+    dim3 gridOffset,
     int nx2, int ny2, int nz2,
     double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
@@ -216,9 +219,9 @@ __global__ void compute_rhs_eta(
     double dy1ty1, double dy2ty1, double dy3ty1, double dy4ty1, double dy5ty1, double ty2,
     double yycon2, double yycon3, double yycon4, double yycon5
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   int m;
   double vijk, vp1, vm1;
@@ -318,6 +321,7 @@ __global__ void compute_rhs_eta(
 }
 
 __global__ void compute_rhs_zeta(
+    dim3 gridOffset,
     int nx2, int ny2, int nz2,
     double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
@@ -330,9 +334,9 @@ __global__ void compute_rhs_zeta(
     double dz1tz1, double dz2tz1, double dz3tz1, double dz4tz1, double dz5tz1, double tz2,
     double zzcon2, double zzcon3, double zzcon4, double zzcon5
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   int m;
   double wijk, wp1, wm1;
@@ -442,6 +446,7 @@ __global__ void compute_rhs_zeta(
 }
 
 __global__ void compute_rhs_tail(
+    dim3 gridOffset,
     int nx2, int ny2, int nz2,
     double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
@@ -453,9 +458,9 @@ __global__ void compute_rhs_tail(
     double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double dt
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
-  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z + gridOffset.z;
 
   int m;
   if (k >= 1 && k <= nz2) {
@@ -475,7 +480,7 @@ void compute_rhs()
   if (timeron) timer_start(t_rhs);
 
   compute_rhs_intro <<< gridDim_, blockDim_ >>> (
-    dev_grid_points, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_speed, dev_square, dev_rhs, dev_forcing 
+    gridOffset, dev_grid_points, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_speed, dev_square, dev_rhs, dev_forcing 
   );
 
   //---------------------------------------------------------------------
@@ -483,7 +488,7 @@ void compute_rhs()
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsx);
   compute_rhs_xi <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dx1tx1, dx2tx1, dx3tx1, dx4tx1, dx5tx1, tx2, xxcon2, xxcon3, xxcon4, xxcon5
+    gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dx1tx1, dx2tx1, dx3tx1, dx4tx1, dx5tx1, tx2, xxcon2, xxcon3, xxcon4, xxcon5
   );
   if (timeron) timer_stop(t_rhsx);
 
@@ -492,7 +497,7 @@ void compute_rhs()
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsy);
   compute_rhs_eta <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1, ty2, yycon2, yycon3, yycon4, yycon5
+    gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1, ty2, yycon2, yycon3, yycon4, yycon5
   );
   if (timeron) timer_stop(t_rhsy);
 
@@ -501,12 +506,12 @@ void compute_rhs()
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsz);
   compute_rhs_zeta <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dz1tz1, dz2tz1, dz3tz1, dz4tz1, dz5tz1, tz2, zzcon2, zzcon3, zzcon4, zzcon5
+    gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dz1tz1, dz2tz1, dz3tz1, dz4tz1, dz5tz1, tz2, zzcon2, zzcon3, zzcon4, zzcon5
   );
   if (timeron) timer_stop(t_rhsz);
 
   compute_rhs_tail <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dt
+    gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dt
   );
 
   if (timeron) timer_stop(t_rhs);

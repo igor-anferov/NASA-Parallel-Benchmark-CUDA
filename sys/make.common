@@ -3,8 +3,8 @@ CCOMPILE = $(CC)  -c $(C_INC) $(CFLAGS)
 CCOMPILE_pp = $(CC_pp)  -c $(C_INC_pp) $(CFLAGS_pp)
 
 ifdef NEED_CUDA
-CCOMPILE += -DNEED_CUDA
-CCOMPILE_pp += -DNEED_CUDA
+CCOMPILE += -DNEED_CUDA -fopenmp
+CCOMPILE_pp += -DNEED_CUDA -fopenmp
 endif
 
 # Class "U" is used internally by the setparams program to mean

@@ -60,17 +60,19 @@ extern int nx2, ny2, nz2;
 extern logical timeron;
 
 #ifdef NEED_CUDA
-extern dim3 blockDim_;
-extern dim3 gridDim_;
+extern __thread dim3 blockDim_;
+extern __thread dim3 gridDim_;
 
-extern dim3 blockDimYZ;
-extern dim3 gridDimYZ;
+extern __thread dim3 blockDimYZ;
+extern __thread dim3 gridDimYZ;
 
-extern dim3 blockDimXY;
-extern dim3 gridDimXY;
+extern __thread dim3 blockDimXY;
+extern __thread dim3 gridDimXY;
 
-extern dim3 blockDimXZ;
-extern dim3 gridDimXZ;
+extern __thread dim3 blockDimXZ;
+extern __thread dim3 gridDimXZ;
+
+extern __thread dim3 gridOffset;
 #endif
 
 #ifdef __NVCC__

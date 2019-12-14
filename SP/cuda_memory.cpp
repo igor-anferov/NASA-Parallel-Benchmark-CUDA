@@ -19,7 +19,7 @@ __thread double (*dev_forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
 #define DEALLOCATE(ptr) assert(cudaSuccess == cudaFree(ptr))
 #define MEMCPY(src, dst, size, kind) assert(cudaSuccess == cudaMemcpy(dst, src, (size)*sizeof(*src), kind))
 #define HOST2DEV(ptr, size) MEMCPY(ptr, dev_ ## ptr, size, cudaMemcpyHostToDevice)
-#define DEV2HOST(ptr, size) MEMCPY(dev_ ## ptr, ptr, size, cudaMemcpyDeviceToHost)
+#define DEV2HOST(ptr, size) MEMCPY(dev_ ## ptr + gridOffset.z, ptr + gridOffset.z, gridElems.z, cudaMemcpyDeviceToHost)
 
 void allocate_device()
 {

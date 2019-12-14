@@ -50,8 +50,8 @@ __global__ void z_solve_kernel(
     double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double dttz1, double dttz2, double comz1, double comz4, double comz5, double comz6, double c2dttz1
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y;
+  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
 
   double cv  [PROBLEM_SIZE];
   double rhos[PROBLEM_SIZE];
@@ -314,6 +314,9 @@ __global__ void z_solve_kernel(
 }
 
 void z_solve() {
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_zsolve);
   z_solve_kernel <<< gridDimXY, blockDimXY >>> (
     dev_grid_points,
