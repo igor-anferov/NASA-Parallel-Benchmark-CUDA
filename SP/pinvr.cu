@@ -68,11 +68,12 @@ __global__ void pinvr_kernel(
   }
 }
 
-void pinvr() {
+void pinvr()
+{
   if (timeron) timer_start(t_pinvr);
   pinvr_kernel <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, rhs
   );
-  if (timeron) timer_stop(t_pinvr);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_pinvr);
 }

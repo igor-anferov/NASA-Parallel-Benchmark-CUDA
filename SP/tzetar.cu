@@ -31,40 +31,70 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
+#include <assert.h>
 #include "header.h"
 
 //---------------------------------------------------------------------
 // block-diagonal matrix-vector multiplication                       
 //---------------------------------------------------------------------
+__global__ void tzetar_kernel(
+    int nx2, int ny2, int nz2,
+    double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z;
 
-#ifndef NEED_CUDA
-void pinvr()
-{
-  int i, j, k;
-  double r1, r2, r3, r4, r5, t1, t2;
+  double t1, t2, t3, ac, xvel, yvel, zvel, r1, r2, r3, r4, r5;
+  double btuz, ac2u, uzik1;
 
-  if (timeron) timer_start(t_pinvr);
-  for (k = 1; k <= nz2; k++) {
-    for (j = 1; j <= ny2; j++) {
-      for (i = 1; i <= nx2; i++) {
+  if (k >= 1 && k <= nz2) {
+    if (j >= 1 && j <= ny2) {
+      if (i >= 1 && i <= nx2) {
+        xvel = us[k][j][i];
+        yvel = vs[k][j][i];
+        zvel = ws[k][j][i];
+        ac   = speed[k][j][i];
+
+        ac2u = ac*ac;
+
         r1 = rhs[k][j][i][0];
         r2 = rhs[k][j][i][1];
         r3 = rhs[k][j][i][2];
         r4 = rhs[k][j][i][3];
-        r5 = rhs[k][j][i][4];
+        r5 = rhs[k][j][i][4];     
 
-        t1 = bt * r1;
-        t2 = 0.5 * ( r4 + r5 );
+        uzik1 = u[k][j][i][0];
+        btuz  = bt * uzik1;
 
-        rhs[k][j][i][0] =  bt * ( r4 - r5 );
-        rhs[k][j][i][1] = -r3;
-        rhs[k][j][i][2] =  r2;
-        rhs[k][j][i][3] = -t1 + t2;
-        rhs[k][j][i][4] =  t1 + t2;
+        t1 = btuz/ac * (r4 + r5);
+        t2 = r3 + t1;
+        t3 = btuz * (r4 - r5);
+
+        rhs[k][j][i][0] = t2;
+        rhs[k][j][i][1] = -uzik1*r2 + xvel*t2;
+        rhs[k][j][i][2] =  uzik1*r1 + yvel*t2;
+        rhs[k][j][i][3] =  zvel*t2  + t3;
+        rhs[k][j][i][4] =  uzik1*(-xvel*r2 + yvel*r1) + 
+                           qs[k][j][i]*t2 + c2iv*ac2u*t1 + zvel*t3;
       }
     }
   }
-  if (timeron) timer_stop(t_pinvr);
 }
 
-#endif
+void tzetar()
+{
+  if (timeron) timer_start(t_tzetar);
+  tzetar_kernel <<< gridDim_, blockDim_ >>> (
+    nx2, ny2, nz2, u, us, vs, ws, qs, speed, rhs
+  );
+  assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_tzetar);
+}
+

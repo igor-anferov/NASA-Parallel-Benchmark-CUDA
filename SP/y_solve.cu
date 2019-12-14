@@ -49,8 +49,7 @@ __global__ void y_solve_kernel(
     double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
     double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double dtty1, double dtty2, double comz1, double comz4, double comz5, double comz6, double c2dtty1
-)
-{
+) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int k = blockDim.z * blockIdx.z + threadIdx.z;
 
@@ -313,8 +312,8 @@ void y_solve() {
     vs, rho_i, speed, rhs,
     dtty1, dtty2, comz1, comz4, comz5, comz6, c2dtty1
   );
-  if (timeron) timer_stop(t_ysolve);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_ysolve);
 
   pinvr();
 }

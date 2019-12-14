@@ -39,6 +39,7 @@
 // simultaneously. The Thomas algorithm is employed to solve the
 // systems for the y-lines. Boundary conditions are non-periodic
 //---------------------------------------------------------------------
+
 #ifndef NEED_CUDA
 void y_solve()
 {

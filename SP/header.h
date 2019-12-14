@@ -62,11 +62,11 @@ extern logical timeron;
 extern dim3 blockDim_;
 extern dim3 gridDim_;
 
-extern dim3 blockDimZY;
-extern dim3 gridDimZY;
+extern dim3 blockDimYZ;
+extern dim3 gridDimYZ;
 
-extern dim3 blockDimYX;
-extern dim3 gridDimYX;
+extern dim3 blockDimXY;
+extern dim3 gridDimXY;
 
 extern dim3 blockDimXZ;
 extern dim3 gridDimXZ;

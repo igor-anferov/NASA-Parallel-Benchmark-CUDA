@@ -31,9 +31,9 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#ifndef NEED_CUDA
-
+#include <assert.h>
 #include "header.h"
+#include "initialize_kernels.cu"
 
 //---------------------------------------------------------------------
 // this function performs the solution of the approximate factorization
@@ -41,14 +41,29 @@
 // simultaneously. The Thomas algorithm is employed to solve the
 // systems for the z-lines. Boundary conditions are non-periodic
 //---------------------------------------------------------------------
-void z_solve()
-{
-  int i, j, k, k1, k2, m;
+__global__ void z_solve_kernel(
+    int *grid_points/*[3]*/,
+    int nx2, int ny2, int nz2,
+    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
+    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double dttz1, double dttz2, double comz1, double comz4, double comz5, double comz6, double c2dttz1
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
+
+  double cv  [PROBLEM_SIZE];
+  double rhos[PROBLEM_SIZE];
+  double lhs [IMAXP+1][5];
+  double lhsp[IMAXP+1][5];
+  double lhsm[IMAXP+1][5];
+
+  int k, k1, k2, m;
   double ru1, fac1, fac2;
 
-  if (timeron) timer_start(t_zsolve);
-  for (j = 1; j <= ny2; j++) {
-    lhsinitj(nz2+1, nx2);
+  if (j >= 1 && j <= ny2) {
+    lhsinitj_kernel(nz2+1, nx2, lhs, lhsp, lhsm);
 
     //---------------------------------------------------------------------
     // Computes the left hand side for the three z-factors   
@@ -57,7 +72,7 @@ void z_solve()
     //---------------------------------------------------------------------
     // first fill the lhs for the u-eigenvalue                          
     //---------------------------------------------------------------------
-    for (i = 1; i <= nx2; i++) {
+    if (i >= 1 && i <= nx2) {
       for (k = 0; k <= nz2+1; k++) {
         ru1 = c3c4*rho_i[k][j][i];
         cv[k] = ws[k][j][i];
@@ -65,68 +80,68 @@ void z_solve()
       }
 
       for (k = 1; k <= nz2; k++) {
-        lhs[k][i][0] =  0.0;
-        lhs[k][i][1] = -dttz2 * cv[k-1] - dttz1 * rhos[k-1];
-        lhs[k][i][2] =  1.0 + c2dttz1 * rhos[k];
-        lhs[k][i][3] =  dttz2 * cv[k+1] - dttz1 * rhos[k+1];
-        lhs[k][i][4] =  0.0;
+        lhs[k][0] =  0.0;
+        lhs[k][1] = -dttz2 * cv[k-1] - dttz1 * rhos[k-1];
+        lhs[k][2] =  1.0 + c2dttz1 * rhos[k];
+        lhs[k][3] =  dttz2 * cv[k+1] - dttz1 * rhos[k+1];
+        lhs[k][4] =  0.0;
       }
     }
 
     //---------------------------------------------------------------------
     // add fourth order dissipation                                  
     //---------------------------------------------------------------------
-    for (i = 1; i <= nx2; i++) {
+    if (i >= 1 && i <= nx2) {
       k = 1;
-      lhs[k][i][2] = lhs[k][i][2] + comz5;
-      lhs[k][i][3] = lhs[k][i][3] - comz4;
-      lhs[k][i][4] = lhs[k][i][4] + comz1;
+      lhs[k][2] = lhs[k][2] + comz5;
+      lhs[k][3] = lhs[k][3] - comz4;
+      lhs[k][4] = lhs[k][4] + comz1;
 
       k = 2;
-      lhs[k][i][1] = lhs[k][i][1] - comz4;
-      lhs[k][i][2] = lhs[k][i][2] + comz6;
-      lhs[k][i][3] = lhs[k][i][3] - comz4;
-      lhs[k][i][4] = lhs[k][i][4] + comz1;
+      lhs[k][1] = lhs[k][1] - comz4;
+      lhs[k][2] = lhs[k][2] + comz6;
+      lhs[k][3] = lhs[k][3] - comz4;
+      lhs[k][4] = lhs[k][4] + comz1;
     }
 
     for (k = 3; k <= nz2-2; k++) {
-      for (i = 1; i <= nx2; i++) {
-        lhs[k][i][0] = lhs[k][i][0] + comz1;
-        lhs[k][i][1] = lhs[k][i][1] - comz4;
-        lhs[k][i][2] = lhs[k][i][2] + comz6;
-        lhs[k][i][3] = lhs[k][i][3] - comz4;
-        lhs[k][i][4] = lhs[k][i][4] + comz1;
+      if (i >= 1 && i <= nx2) {
+        lhs[k][0] = lhs[k][0] + comz1;
+        lhs[k][1] = lhs[k][1] - comz4;
+        lhs[k][2] = lhs[k][2] + comz6;
+        lhs[k][3] = lhs[k][3] - comz4;
+        lhs[k][4] = lhs[k][4] + comz1;
       }
     }
 
-    for (i = 1; i <= nx2; i++) {
+    if (i >= 1 && i <= nx2) {
       k = nz2-1;
-      lhs[k][i][0] = lhs[k][i][0] + comz1;
-      lhs[k][i][1] = lhs[k][i][1] - comz4;
-      lhs[k][i][2] = lhs[k][i][2] + comz6;
-      lhs[k][i][3] = lhs[k][i][3] - comz4;
+      lhs[k][0] = lhs[k][0] + comz1;
+      lhs[k][1] = lhs[k][1] - comz4;
+      lhs[k][2] = lhs[k][2] + comz6;
+      lhs[k][3] = lhs[k][3] - comz4;
 
       k = nz2;
-      lhs[k][i][0] = lhs[k][i][0] + comz1;
-      lhs[k][i][1] = lhs[k][i][1] - comz4;
-      lhs[k][i][2] = lhs[k][i][2] + comz5;
+      lhs[k][0] = lhs[k][0] + comz1;
+      lhs[k][1] = lhs[k][1] - comz4;
+      lhs[k][2] = lhs[k][2] + comz5;
     }
 
     //---------------------------------------------------------------------
     // subsequently, fill the other factors (u+c), (u-c) 
     //---------------------------------------------------------------------
     for (k = 1; k <= nz2; k++) {
-      for (i = 1; i <= nx2; i++) {
-        lhsp[k][i][0] = lhs[k][i][0];
-        lhsp[k][i][1] = lhs[k][i][1] - dttz2 * speed[k-1][j][i];
-        lhsp[k][i][2] = lhs[k][i][2];
-        lhsp[k][i][3] = lhs[k][i][3] + dttz2 * speed[k+1][j][i];
-        lhsp[k][i][4] = lhs[k][i][4];
-        lhsm[k][i][0] = lhs[k][i][0];
-        lhsm[k][i][1] = lhs[k][i][1] + dttz2 * speed[k-1][j][i];
-        lhsm[k][i][2] = lhs[k][i][2];
-        lhsm[k][i][3] = lhs[k][i][3] - dttz2 * speed[k+1][j][i];
-        lhsm[k][i][4] = lhs[k][i][4];
+      if (i >= 1 && i <= nx2) {
+        lhsp[k][0] = lhs[k][0];
+        lhsp[k][1] = lhs[k][1] - dttz2 * speed[k-1][j][i];
+        lhsp[k][2] = lhs[k][2];
+        lhsp[k][3] = lhs[k][3] + dttz2 * speed[k+1][j][i];
+        lhsp[k][4] = lhs[k][4];
+        lhsm[k][0] = lhs[k][0];
+        lhsm[k][1] = lhs[k][1] + dttz2 * speed[k-1][j][i];
+        lhsm[k][2] = lhs[k][2];
+        lhsm[k][3] = lhs[k][3] - dttz2 * speed[k+1][j][i];
+        lhsm[k][4] = lhs[k][4];
       }
     }
 
@@ -137,22 +152,22 @@ void z_solve()
     for (k = 0; k <= grid_points[2]-3; k++) {
       k1 = k + 1;
       k2 = k + 2;
-      for (i = 1; i <= nx2; i++) {
-        fac1 = 1.0/lhs[k][i][2];
-        lhs[k][i][3] = fac1*lhs[k][i][3];
-        lhs[k][i][4] = fac1*lhs[k][i][4];
+      if (i >= 1 && i <= nx2) {
+        fac1 = 1.0/lhs[k][2];
+        lhs[k][3] = fac1*lhs[k][3];
+        lhs[k][4] = fac1*lhs[k][4];
         for (m = 0; m < 3; m++) {
           rhs[k][j][i][m] = fac1*rhs[k][j][i][m];
         }
-        lhs[k1][i][2] = lhs[k1][i][2] - lhs[k1][i][1]*lhs[k][i][3];
-        lhs[k1][i][3] = lhs[k1][i][3] - lhs[k1][i][1]*lhs[k][i][4];
+        lhs[k1][2] = lhs[k1][2] - lhs[k1][1]*lhs[k][3];
+        lhs[k1][3] = lhs[k1][3] - lhs[k1][1]*lhs[k][4];
         for (m = 0; m < 3; m++) {
-          rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhs[k1][i][1]*rhs[k][j][i][m];
+          rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhs[k1][1]*rhs[k][j][i][m];
         }
-        lhs[k2][i][1] = lhs[k2][i][1] - lhs[k2][i][0]*lhs[k][i][3];
-        lhs[k2][i][2] = lhs[k2][i][2] - lhs[k2][i][0]*lhs[k][i][4];
+        lhs[k2][1] = lhs[k2][1] - lhs[k2][0]*lhs[k][3];
+        lhs[k2][2] = lhs[k2][2] - lhs[k2][0]*lhs[k][4];
         for (m = 0; m < 3; m++) {
-          rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhs[k2][i][0]*rhs[k][j][i][m];
+          rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhs[k2][0]*rhs[k][j][i][m];
         }
       }
     }
@@ -164,23 +179,23 @@ void z_solve()
     //---------------------------------------------------------------------
     k  = grid_points[2]-2;
     k1 = grid_points[2]-1;
-    for (i = 1; i <= nx2; i++) {
-      fac1 = 1.0/lhs[k][i][2];
-      lhs[k][i][3] = fac1*lhs[k][i][3];
-      lhs[k][i][4] = fac1*lhs[k][i][4];
+    if (i >= 1 && i <= nx2) {
+      fac1 = 1.0/lhs[k][2];
+      lhs[k][3] = fac1*lhs[k][3];
+      lhs[k][4] = fac1*lhs[k][4];
       for (m = 0; m < 3; m++) {
         rhs[k][j][i][m] = fac1*rhs[k][j][i][m];
       }
-      lhs[k1][i][2] = lhs[k1][i][2] - lhs[k1][i][1]*lhs[k][i][3];
-      lhs[k1][i][3] = lhs[k1][i][3] - lhs[k1][i][1]*lhs[k][i][4];
+      lhs[k1][2] = lhs[k1][2] - lhs[k1][1]*lhs[k][3];
+      lhs[k1][3] = lhs[k1][3] - lhs[k1][1]*lhs[k][4];
       for (m = 0; m < 3; m++) {
-        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhs[k1][i][1]*rhs[k][j][i][m];
+        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhs[k1][1]*rhs[k][j][i][m];
       }
 
       //---------------------------------------------------------------------
       // scale the last row immediately
       //---------------------------------------------------------------------
-      fac2 = 1.0/lhs[k1][i][2];
+      fac2 = 1.0/lhs[k1][2];
       for (m = 0; m < 3; m++) {
         rhs[k1][j][i][m] = fac2*rhs[k1][j][i][m];
       }
@@ -192,30 +207,30 @@ void z_solve()
     for (k = 0; k <= grid_points[2]-3; k++) {
       k1 = k + 1;
       k2 = k + 2;
-      for (i = 1; i <= nx2; i++) {
+      if (i >= 1 && i <= nx2) {
         m = 3;
-        fac1 = 1.0/lhsp[k][i][2];
-        lhsp[k][i][3]    = fac1*lhsp[k][i][3];
-        lhsp[k][i][4]    = fac1*lhsp[k][i][4];
+        fac1 = 1.0/lhsp[k][2];
+        lhsp[k][3]    = fac1*lhsp[k][3];
+        lhsp[k][4]    = fac1*lhsp[k][4];
         rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
-        lhsp[k1][i][2]   = lhsp[k1][i][2] - lhsp[k1][i][1]*lhsp[k][i][3];
-        lhsp[k1][i][3]   = lhsp[k1][i][3] - lhsp[k1][i][1]*lhsp[k][i][4];
-        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsp[k1][i][1]*rhs[k][j][i][m];
-        lhsp[k2][i][1]   = lhsp[k2][i][1] - lhsp[k2][i][0]*lhsp[k][i][3];
-        lhsp[k2][i][2]   = lhsp[k2][i][2] - lhsp[k2][i][0]*lhsp[k][i][4];
-        rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhsp[k2][i][0]*rhs[k][j][i][m];
+        lhsp[k1][2]   = lhsp[k1][2] - lhsp[k1][1]*lhsp[k][3];
+        lhsp[k1][3]   = lhsp[k1][3] - lhsp[k1][1]*lhsp[k][4];
+        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsp[k1][1]*rhs[k][j][i][m];
+        lhsp[k2][1]   = lhsp[k2][1] - lhsp[k2][0]*lhsp[k][3];
+        lhsp[k2][2]   = lhsp[k2][2] - lhsp[k2][0]*lhsp[k][4];
+        rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhsp[k2][0]*rhs[k][j][i][m];
 
         m = 4;
-        fac1 = 1.0/lhsm[k][i][2];
-        lhsm[k][i][3]    = fac1*lhsm[k][i][3];
-        lhsm[k][i][4]    = fac1*lhsm[k][i][4];
+        fac1 = 1.0/lhsm[k][2];
+        lhsm[k][3]    = fac1*lhsm[k][3];
+        lhsm[k][4]    = fac1*lhsm[k][4];
         rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
-        lhsm[k1][i][2]   = lhsm[k1][i][2] - lhsm[k1][i][1]*lhsm[k][i][3];
-        lhsm[k1][i][3]   = lhsm[k1][i][3] - lhsm[k1][i][1]*lhsm[k][i][4];
-        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsm[k1][i][1]*rhs[k][j][i][m];
-        lhsm[k2][i][1]   = lhsm[k2][i][1] - lhsm[k2][i][0]*lhsm[k][i][3];
-        lhsm[k2][i][2]   = lhsm[k2][i][2] - lhsm[k2][i][0]*lhsm[k][i][4];
-        rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhsm[k2][i][0]*rhs[k][j][i][m];
+        lhsm[k1][2]   = lhsm[k1][2] - lhsm[k1][1]*lhsm[k][3];
+        lhsm[k1][3]   = lhsm[k1][3] - lhsm[k1][1]*lhsm[k][4];
+        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsm[k1][1]*rhs[k][j][i][m];
+        lhsm[k2][1]   = lhsm[k2][1] - lhsm[k2][0]*lhsm[k][3];
+        lhsm[k2][2]   = lhsm[k2][2] - lhsm[k2][0]*lhsm[k][4];
+        rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhsm[k2][0]*rhs[k][j][i][m];
       }
     }
 
@@ -224,31 +239,31 @@ void z_solve()
     //---------------------------------------------------------------------
     k  = grid_points[2]-2;
     k1 = grid_points[2]-1;
-    for (i = 1; i <= nx2; i++) {
+    if (i >= 1 && i <= nx2) {
       m = 3;
-      fac1 = 1.0/lhsp[k][i][2];
-      lhsp[k][i][3]    = fac1*lhsp[k][i][3];
-      lhsp[k][i][4]    = fac1*lhsp[k][i][4];
+      fac1 = 1.0/lhsp[k][2];
+      lhsp[k][3]    = fac1*lhsp[k][3];
+      lhsp[k][4]    = fac1*lhsp[k][4];
       rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
-      lhsp[k1][i][2]   = lhsp[k1][i][2] - lhsp[k1][i][1]*lhsp[k][i][3];
-      lhsp[k1][i][3]   = lhsp[k1][i][3] - lhsp[k1][i][1]*lhsp[k][i][4];
-      rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsp[k1][i][1]*rhs[k][j][i][m];
+      lhsp[k1][2]   = lhsp[k1][2] - lhsp[k1][1]*lhsp[k][3];
+      lhsp[k1][3]   = lhsp[k1][3] - lhsp[k1][1]*lhsp[k][4];
+      rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsp[k1][1]*rhs[k][j][i][m];
 
       m = 4;
-      fac1 = 1.0/lhsm[k][i][2];
-      lhsm[k][i][3]    = fac1*lhsm[k][i][3];
-      lhsm[k][i][4]    = fac1*lhsm[k][i][4];
+      fac1 = 1.0/lhsm[k][2];
+      lhsm[k][3]    = fac1*lhsm[k][3];
+      lhsm[k][4]    = fac1*lhsm[k][4];
       rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
-      lhsm[k1][i][2]   = lhsm[k1][i][2] - lhsm[k1][i][1]*lhsm[k][i][3];
-      lhsm[k1][i][3]   = lhsm[k1][i][3] - lhsm[k1][i][1]*lhsm[k][i][4];
-      rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsm[k1][i][1]*rhs[k][j][i][m];
+      lhsm[k1][2]   = lhsm[k1][2] - lhsm[k1][1]*lhsm[k][3];
+      lhsm[k1][3]   = lhsm[k1][3] - lhsm[k1][1]*lhsm[k][4];
+      rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsm[k1][1]*rhs[k][j][i][m];
 
       //---------------------------------------------------------------------
       // Scale the last row immediately (some of this is overkill
       // if this is the last cell)
       //---------------------------------------------------------------------
-      rhs[k1][j][i][3] = rhs[k1][j][i][3]/lhsp[k1][i][2];
-      rhs[k1][j][i][4] = rhs[k1][j][i][4]/lhsm[k1][i][2];
+      rhs[k1][j][i][3] = rhs[k1][j][i][3]/lhsp[k1][2];
+      rhs[k1][j][i][4] = rhs[k1][j][i][4]/lhsm[k1][2];
     }
 
 
@@ -257,13 +272,13 @@ void z_solve()
     //---------------------------------------------------------------------
     k  = grid_points[2]-2;
     k1 = grid_points[2]-1;
-    for (i = 1; i <= nx2; i++) {
+    if (i >= 1 && i <= nx2) {
       for (m = 0; m < 3; m++) {
-        rhs[k][j][i][m] = rhs[k][j][i][m] - lhs[k][i][3]*rhs[k1][j][i][m];
+        rhs[k][j][i][m] = rhs[k][j][i][m] - lhs[k][3]*rhs[k1][j][i][m];
       }
 
-      rhs[k][j][i][3] = rhs[k][j][i][3] - lhsp[k][i][3]*rhs[k1][j][i][3];
-      rhs[k][j][i][4] = rhs[k][j][i][4] - lhsm[k][i][3]*rhs[k1][j][i][4];
+      rhs[k][j][i][3] = rhs[k][j][i][3] - lhsp[k][3]*rhs[k1][j][i][3];
+      rhs[k][j][i][4] = rhs[k][j][i][4] - lhsm[k][3]*rhs[k1][j][i][4];
     }
 
     //---------------------------------------------------------------------
@@ -277,28 +292,37 @@ void z_solve()
     for (k = grid_points[2]-3; k >= 0; k--) {
       k1 = k + 1;
       k2 = k + 2;
-      for (i = 1; i <= nx2; i++) {
+      if (i >= 1 && i <= nx2) {
         for (m = 0; m < 3; m++) {
           rhs[k][j][i][m] = rhs[k][j][i][m] - 
-                            lhs[k][i][3]*rhs[k1][j][i][m] -
-                            lhs[k][i][4]*rhs[k2][j][i][m];
+                            lhs[k][3]*rhs[k1][j][i][m] -
+                            lhs[k][4]*rhs[k2][j][i][m];
         }
 
         //-------------------------------------------------------------------
         // And the remaining two
         //-------------------------------------------------------------------
         rhs[k][j][i][3] = rhs[k][j][i][3] - 
-                          lhsp[k][i][3]*rhs[k1][j][i][3] -
-                          lhsp[k][i][4]*rhs[k2][j][i][3];
+                          lhsp[k][3]*rhs[k1][j][i][3] -
+                          lhsp[k][4]*rhs[k2][j][i][3];
         rhs[k][j][i][4] = rhs[k][j][i][4] - 
-                          lhsm[k][i][3]*rhs[k1][j][i][4] -
-                          lhsm[k][i][4]*rhs[k2][j][i][4];
+                          lhsm[k][3]*rhs[k1][j][i][4] -
+                          lhsm[k][4]*rhs[k2][j][i][4];
       }
     }
   }
+}
+
+void z_solve() {
+  if (timeron) timer_start(t_zsolve);
+  z_solve_kernel <<< gridDimXY, blockDimXY >>> (
+    grid_points,
+    nx2, ny2, nz2,
+    ws, rho_i, speed, rhs,
+    dttz1, dttz2, comz1, comz4, comz5, comz6, c2dttz1
+  );
   if (timeron) timer_stop(t_zsolve);
+  assert(cudaSuccess == cudaDeviceSynchronize());
 
   tzetar();
 }
-
-#endif
