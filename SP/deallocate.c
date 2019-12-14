@@ -1,14 +1,9 @@
 #include "header.h"
 
 #include <assert.h>
-
-#ifdef NEED_CUDA
-#include <cuda_runtime.h>
-#define DEALLOCATE(ptr) assert(cudaSuccess == cudaFreeHost(ptr))
-#else
 #include <stdlib.h>
-#define DEALLOCATE(ptr) free(ptr)
-#endif
+
+#define DEALLOCATE(ptr) free(ptr); ptr = NULL
 
 void deallocate()
 {

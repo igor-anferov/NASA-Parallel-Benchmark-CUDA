@@ -87,7 +87,7 @@ void txinvr()
 {
   if (timeron) timer_start(t_txinvr);
   txinvr_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, us, vs, ws, qs, rho_i, speed, rhs
+    nx2, ny2, nz2, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_speed, dev_rhs
   );
   assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_txinvr);

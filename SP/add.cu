@@ -63,7 +63,7 @@ void add()
 {
   if (timeron) timer_start(t_add);
   add_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, u, rhs
+    nx2, ny2, nz2, dev_u, dev_rhs
   );
   if (timeron) timer_stop(t_add);
   assert(cudaSuccess == cudaDeviceSynchronize());

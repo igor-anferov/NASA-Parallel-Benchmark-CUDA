@@ -55,6 +55,7 @@ extern "C" {
 
 /* common /global/ */
 extern int *grid_points/*[3]*/;
+extern __thread int *dev_grid_points/*[3]*/;
 extern int nx2, ny2, nz2;
 extern logical timeron;
 
@@ -163,6 +164,20 @@ extern double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
 extern double (*forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
 
+#ifdef NEED_CUDA
+/* common /fields/ */
+extern __thread double (*dev_u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern __thread double (*dev_us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern __thread double (*dev_vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern __thread double (*dev_ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern __thread double (*dev_qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern __thread double (*dev_rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern __thread double (*dev_speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern __thread double (*dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern __thread double (*dev_rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern __thread double (*dev_forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+#endif
+
 /* common /work_1d/ */
 extern double (*cv  )/*[PROBLEM_SIZE]*/;
 extern double (*rhon)/*[PROBLEM_SIZE]*/;
@@ -203,6 +218,10 @@ extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
 #ifdef NEED_CUDA
 void cuda_init();
 void cuda_init_sizes();
+void allocate_device();
+void deallocate_device();
+void cuda_memcpy_host_to_device();
+void cuda_memcpy_device_to_host();
 #endif
 void allocate();
 void initialize();

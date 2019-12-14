@@ -211,6 +211,6 @@ __global__ void initialize_kernel(
 //---------------------------------------------------------------------
 void initialize()
 {
-    initialize_kernel <<< gridDim_, blockDim_ >>> (grid_points, u, dnxm1, dnym1, dnzm1);
+    initialize_kernel <<< gridDim_, blockDim_ >>> (dev_grid_points, dev_u, dnxm1, dnym1, dnzm1);
     assert(cudaSuccess == cudaDeviceSynchronize());
 }

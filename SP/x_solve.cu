@@ -313,9 +313,9 @@ __global__ void x_solve_kernel(
 void x_solve() {
   if (timeron) timer_start(t_xsolve);
   x_solve_kernel <<< gridDimYZ, blockDimYZ >>> (
-    grid_points,
+    dev_grid_points,
     nx2, ny2, nz2,
-    us, rho_i, speed, rhs,
+    dev_us, dev_rho_i, dev_speed, dev_rhs,
     dttx1, dttx2, comz1, comz4, comz5, comz6, c2dttx1
   );
   if (timeron) timer_stop(t_xsolve);

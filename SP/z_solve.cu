@@ -316,9 +316,9 @@ __global__ void z_solve_kernel(
 void z_solve() {
   if (timeron) timer_start(t_zsolve);
   z_solve_kernel <<< gridDimXY, blockDimXY >>> (
-    grid_points,
+    dev_grid_points,
     nx2, ny2, nz2,
-    ws, rho_i, speed, rhs,
+    dev_ws, dev_rho_i, dev_speed, dev_rhs,
     dttz1, dttz2, comz1, comz4, comz5, comz6, c2dttz1
   );
   if (timeron) timer_stop(t_zsolve);

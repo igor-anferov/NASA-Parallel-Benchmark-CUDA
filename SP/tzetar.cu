@@ -92,7 +92,7 @@ void tzetar()
 {
   if (timeron) timer_start(t_tzetar);
   tzetar_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, u, us, vs, ws, qs, speed, rhs
+    nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_speed, dev_rhs
   );
   assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_tzetar);

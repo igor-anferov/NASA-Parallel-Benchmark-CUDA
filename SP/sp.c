@@ -96,6 +96,7 @@ int main(int argc, char *argv[])
 
 #ifdef NEED_CUDA
   cuda_init();
+  allocate_device();
 #endif
   allocate();
 
@@ -174,6 +175,10 @@ int main(int argc, char *argv[])
 
   exact_rhs();
 
+#ifdef NEED_CUDA
+  cuda_memcpy_host_to_device();
+#endif
+
   initialize();
 
   //---------------------------------------------------------------------
@@ -197,6 +202,10 @@ int main(int argc, char *argv[])
 
   timer_stop(1);
   tmax = timer_read(1);
+
+#ifdef NEED_CUDA
+  cuda_memcpy_device_to_host();
+#endif
 
   verify(niter, &Class, &verified);
 
@@ -246,6 +255,9 @@ int main(int argc, char *argv[])
   }
 
   deallocate();
+#ifdef NEED_CUDA
+  deallocate_device();
+#endif
   return 0;
 }
 

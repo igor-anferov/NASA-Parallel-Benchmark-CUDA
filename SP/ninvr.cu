@@ -71,7 +71,7 @@ __global__ void ninvr_kernel(
 void ninvr() {
   if (timeron) timer_start(t_ninvr);
   ninvr_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, rhs
+    nx2, ny2, nz2, dev_rhs
   );
   if (timeron) timer_stop(t_ninvr);
   assert(cudaSuccess == cudaDeviceSynchronize());
