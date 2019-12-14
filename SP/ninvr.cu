@@ -31,22 +31,24 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#ifndef NEED_CUDA
-
 #include "header.h"
 
 //---------------------------------------------------------------------
 // block-diagonal matrix-vector multiplication              
 //---------------------------------------------------------------------
-void ninvr()
-{
-  int i, j, k;
+__global__ void ninvr_kernel(
+    int nx2, int ny2, int nz2,
+    double (*rhs)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z;
   double r1, r2, r3, r4, r5, t1, t2;
 
-  if (timeron) timer_start(t_ninvr);
-  for (k = 1; k <= nz2; k++) {
-    for (j = 1; j <= ny2; j++) {
-      for (i = 1; i <= nx2; i++) {
+  //if (timeron) timer_start(t_ninvr);
+  if (k >= 1 && k <= nz2) {
+    if (j >= 1 && j <= ny2) {
+      if (i >= 1 && i <= nx2) {
         r1 = rhs[k][j][i][0];
         r2 = rhs[k][j][i][1];
         r3 = rhs[k][j][i][2];
@@ -64,7 +66,11 @@ void ninvr()
       }
     }
   }
-  if (timeron) timer_stop(t_ninvr);
+  //if (timeron) timer_stop(t_ninvr);
 }
 
-#endif
+void ninvr() {
+  ninvr_kernel <<< gridDim_, blockDim_ >>> (
+    nx2, ny2, nz2, rhs
+  );
+}
