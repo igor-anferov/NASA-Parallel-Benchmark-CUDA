@@ -31,10 +31,9 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#include <stdio.h>
 #include <assert.h>
 #include "header.h"
-#include "initialize_kernels.cu"
+#include "initialize_kernel.cu"
 
 //---------------------------------------------------------------------
 // this function performs the solution of the approximate factorization
