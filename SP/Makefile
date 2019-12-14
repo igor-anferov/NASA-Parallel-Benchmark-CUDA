@@ -14,11 +14,7 @@ OBJS = sp.o allocate.o initialize.o exact_solution.o exact_rhs.o \
        z_solve.o tzetar.o add.o txinvr.o error.o verify.o deallocate.o  \
        ${COMMON}/print_results.o ${COMMON}/c_timers.o ${COMMON}/wtime.o
 
-<<<<<<< HEAD
-CUDA_OBJS = cuda_init.cpp.o initialize.cu.o rhs.cu.o txinvr.cu.o add.cu.o x_solve.cu.o y_solve.cu.o ninvr.cu.o pinvr.cu.o
-=======
 CUDA_OBJS = cuda_init.cpp.o initialize.cu.o rhs.cu.o txinvr.cu.o add.cu.o x_solve.cu.o ninvr.cu.o y_solve.cu.o pinvr.cu.o z_solve.cu.o tzetar.cu.o
->>>>>>> origin/master
 
 ifdef NEED_CUDA
 DEVICE_CC += -DNEED_CUDA
