@@ -310,7 +310,7 @@ void y_solve() {
     grid_points,
     nx2, ny2, nz2,
     vs, rho_i, speed, rhs,
-    dttz1, dttz2, comz1, comz4, comz5, comz6, c2dttz1
+    dtty1, dtty2, comz1, comz4, comz5, comz6, c2dtty1
   );
   if (timeron) timer_stop(t_ysolve);
   assert(cudaSuccess == cudaDeviceSynchronize());
