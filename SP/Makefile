@@ -35,7 +35,7 @@ ${PROGRAM}: config ${OBJS}
 	${CLINK} ${CLINKFLAGS} -o ${PROGRAM} ${OBJS} ${C_LIB}
 
 %.cu.o: %.cu  header.h npbparams.h
-	${DEVICE_CC} -g -O3 -arch ${ARCH} ${C_INC} $< -c -o $@
+	${DEVICE_CC} -Xcompiler -rdynamic -lineinfo -g -O3 -arch ${ARCH} ${C_INC} $< -c -o $@
 
 %.o: %.c  header.h npbparams.h
 	${CCOMPILE} $< -o $@
