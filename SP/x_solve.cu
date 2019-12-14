@@ -32,6 +32,7 @@
 //-------------------------------------------------------------------------//
 
 #include "header.h"
+#include "initialize.cu"
 
 //---------------------------------------------------------------------
 // this function performs the solution of the approximate factorization
@@ -61,7 +62,7 @@ __global__ void x_solve_kernel(
   int k = blockDim.z * blockIdx.z + threadIdx.z;
 
   if (k >= 1 && k <= nz2) {
-    lhsinit_(nx2+1, ny2);
+    lhsinit_(nx2+1, ny2, lhs, lhsp, lhsm);
 
     //---------------------------------------------------------------------
     // Computes the left hand side for the three x-factors  

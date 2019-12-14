@@ -39,6 +39,8 @@
 // simultaneously. The Thomas algorithm is employed to solve the
 // systems for the x-lines. Boundary conditions are non-periodic
 //---------------------------------------------------------------------
+
+#ifndef NEED_CUDA
 void x_solve()
 {
   int i, j, k, i1, i2, m;
@@ -299,3 +301,4 @@ void x_solve()
   ninvr();
 }
 
+#endif

@@ -219,6 +219,20 @@ void error_norm(double rms[5]);
 void rhs_norm(double rms[5]);
 void verify(int no_time_steps, char *Class, logical *verified);
 void deallocate();
+#ifdef __NVCC__
+__device__
+#endif
+void lhsinit_(int ni, int nj, 
+    double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5],
+    double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5],
+    double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5]);
+#ifdef __NVCC__
+__device__
+#endif
+void lhsinitj_(int nj, int ni,
+    double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5],
+    double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5],
+    double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5]);
 
 #ifdef __cplusplus
 }
