@@ -94,10 +94,6 @@ int main(int argc, char *argv[])
   char Class;
   char *t_names[t_last+1];
 
-#ifdef NEED_CUDA
-  cuda_init();
-  allocate_device();
-#endif
   allocate();
 
   //---------------------------------------------------------------------
@@ -147,10 +143,6 @@ int main(int argc, char *argv[])
     grid_points[2] = PROBLEM_SIZE;
   }
 
-#ifdef NEED_CUDA
-  cuda_init_sizes();
-#endif
-
   printf(" Size: %4dx%4dx%4d\n", 
       grid_points[0], grid_points[1], grid_points[2]);
   printf(" Iterations: %4d    dt: %10.6f\n", niter, dt);
@@ -176,38 +168,49 @@ int main(int argc, char *argv[])
   exact_rhs();
 
 #ifdef NEED_CUDA
-  cuda_memcpy_host_to_device();
+  cuda_preinit();
+#pragma omp parallel
+  {
+    cuda_init();
+    allocate_device();
+    cuda_init_sizes();
+    cuda_memcpy_host_to_device();
 #endif
 
-  initialize();
+    initialize();
 
-  //---------------------------------------------------------------------
-  // do one time step to touch all code, and reinitialize
-  //---------------------------------------------------------------------
-  adi();
-  initialize();
+    //---------------------------------------------------------------------
+    // do one time step to touch all code, and reinitialize
+    //---------------------------------------------------------------------
+    adi();
+    initialize();
 
-  for (i = 1; i <= t_last; i++) {
-    timer_clear(i);
-  }
-  timer_start(1);
+    for (i = 1; i <= t_last; i++) {
+      timer_clear(i);
+    }
+    timer_start(1);
 
-  for (step = 1; step <= niter; step++) {
-    if ((step % 20) == 0 || step == 1) {
-      printf(" Time step %4d\n", step);
+    for (step = 1; step <= niter; step++) {
+      if ((step % 20) == 0 || step == 1) {
+        printf(" Time step %4d\n", step);
+      }
+
+      adi();
     }
 
-    adi();
-  }
-
-  timer_stop(1);
-  tmax = timer_read(1);
+    timer_stop(1);
+    tmax = timer_read(1);
 
 #ifdef NEED_CUDA
-  cuda_memcpy_device_to_host();
+    cuda_memcpy_device_to_host();
 #endif
 
-  verify(niter, &Class, &verified);
+    verify(niter, &Class, &verified);
+
+#ifdef NEED_CUDA
+    deallocate_device();
+  }
+#endif
 
   if (tmax != 0.0) {
     n3 = grid_points[0]*grid_points[1]*grid_points[2];
@@ -255,9 +258,6 @@ int main(int argc, char *argv[])
   }
 
   deallocate();
-#ifdef NEED_CUDA
-  deallocate_device();
-#endif
   return 0;
 }
 

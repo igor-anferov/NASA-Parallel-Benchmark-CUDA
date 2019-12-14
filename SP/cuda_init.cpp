@@ -2,6 +2,7 @@
 
 #include "header.h"
 
+#include <omp.h>
 #include <assert.h>
 #include <cuda_runtime.h>
 
@@ -17,9 +18,14 @@ dim3 gridDimXY;
 dim3 blockDimXZ;
 dim3 gridDimXZ;
 
+void cuda_preinit()
+{
+    omp_set_num_threads(cudaGetDeviceCount());
+}
+
 void cuda_init()
 {
-    int device = 0;
+    int device = omp_get_thread_num();
     assert(cudaSuccess == cudaSetDevice(device));
 }
 

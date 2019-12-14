@@ -216,6 +216,7 @@ extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
 
 //-----------------------------------------------------------------------
 #ifdef NEED_CUDA
+void cuda_preinit();
 void cuda_init();
 void cuda_init_sizes();
 void allocate_device();
