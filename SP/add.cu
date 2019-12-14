@@ -31,28 +31,40 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#ifndef NEED_CUDA
-
+#include <assert.h>
 #include "header.h"
 
 //---------------------------------------------------------------------
 // addition of update to the vector u
 //---------------------------------------------------------------------
-void add()
-{
-  int i, j, k, m;
+__global__ void add_kernel(
+    int nx2, int ny2, int nz2,
+    double (*u  )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*rhs)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+) {
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
+  int k = blockDim.z * blockIdx.z + threadIdx.z;
+  int m;
 
-  if (timeron) timer_start(t_add);
-  for (k = 1; k <= nz2; k++) {
-    for (j = 1; j <= ny2; j++) {
-      for (i = 1; i <= nx2; i++) {
+  if (k >= 1 && k <= nz2) {
+    if (j >= 1 && j <= ny2) {
+      if (i >= 1 && i <= nx2) {
+#pragma unroll
         for (m = 0; m < 5; m++) {
           u[k][j][i][m] = u[k][j][i][m] + rhs[k][j][i][m];
         }
       }
     }
   }
-  if (timeron) timer_stop(t_add);
 }
 
-#endif
+void add()
+{
+  if (timeron) timer_start(t_add);
+  add_kernel <<< gridDim_, blockDim_ >>> (
+    nx2, ny2, nz2, u, rhs
+  );
+  if (timeron) timer_stop(t_add);
+  assert(cudaSuccess == cudaDeviceSynchronize());
+}
