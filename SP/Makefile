@@ -8,10 +8,8 @@ include ../config/make.def
 
 include ../sys/make.common
 
-OBJS = sp.o mem_alloc.o initialize.o exact_solution.o exact_rhs.o \
-       set_constants.o adi.o rhs.o      \
-       x_solve.o ninvr.o y_solve.o pinvr.o    \
-       z_solve.o tzetar.o add.o txinvr.o error.o verify.o mem_free.o  \
+OBJS = sp.o mem_alloc.o exact_rhs.o \
+       set_constants.o adi.o error.o verify.o mem_free.o  \
        ${COMMON}/print_results.o ${COMMON}/c_timers.o ${COMMON}/wtime.o \
        cuda_init.cpp.o initialize.cu.o rhs.cu.o txinvr.cu.o add.cu.o \
 	   x_solve.cu.o ninvr.cu.o y_solve.cu.o pinvr.cu.o z_solve.cu.o tzetar.cu.o
