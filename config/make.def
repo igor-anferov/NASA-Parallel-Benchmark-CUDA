@@ -79,6 +79,7 @@ FLINKFLAGS = -O3 -mcmodel=medium
 # This is the C compiler used for C programs
 #---------------------------------------------------------------------------
 CC = gcc
+CC_pp = g++
 
 #---------------------------------------------------------------------------
 # This links C programs; usually the same as ${CC}

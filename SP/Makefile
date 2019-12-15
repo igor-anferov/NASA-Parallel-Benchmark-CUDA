@@ -3,7 +3,7 @@ BENCHMARK=sp
 BENCHMARKU=SP
 DEVICE_CC=nvcc
 ARCH=sm_60
-HOST_COMP ?= ${CC_pp}
+HOST_COMP=${CC_pp}
 
 include ../config/make.def
 

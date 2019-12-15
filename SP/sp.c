@@ -126,13 +126,12 @@ int main(int argc, char *argv[])
   printf("\n\n NAS Parallel Benchmarks (NPB3.3-SER-C) - SP Benchmark\n\n");
 
   if ((fp = fopen("inputsp.data", "r")) != NULL) {
-    int result;
     printf(" Reading from input file inputsp.data\n");
-    result = fscanf(fp, "%d", &niter);
+    fscanf(fp, "%d", &niter);
     while (fgetc(fp) != '\n');
-    result = fscanf(fp, "%lf", &dt);
+    fscanf(fp, "%lf", &dt);
     while (fgetc(fp) != '\n');
-    result = fscanf(fp, "%d%d%d", &grid_points[0], &grid_points[1], &grid_points[2]);
+    fscanf(fp, "%d%d%d", &grid_points[0], &grid_points[1], &grid_points[2]);
     fclose(fp);
   } else {
     printf(" No input file inputsp.data. Using compiled defaults\n");
@@ -191,7 +190,9 @@ int main(int argc, char *argv[])
     timer_start(1);
 
     for (step = 1; step <= niter; step++) {
+#ifdef NEED_CUDA
 #pragma omp single
+#endif
       if ((step % 20) == 0 || step == 1) {
         printf(" Time step %4d\n", step);
       }
