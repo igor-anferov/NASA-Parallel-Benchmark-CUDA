@@ -32,6 +32,7 @@
 //-------------------------------------------------------------------------//
 
 #include <assert.h>
+#include <omp.h>
 #include "header.h"
 #include "initialize_kernels.cu"
 
@@ -306,9 +307,11 @@ __global__ void y_solve_kernel(
 }
 
 void y_solve() {
-  cuda_memcpy_device_to_host();
+  if (omp_get_num_threads() > 1) {
+    cuda_memcpy_device_to_host();
 #pragma omp barrier
-  cuda_memcpy_host_to_device();
+    cuda_memcpy_host_to_device();
+  }
   if (timeron) timer_start(t_ysolve);
   y_solve_kernel <<< gridDimXZ, blockDimXZ >>> (
     gridOffset,

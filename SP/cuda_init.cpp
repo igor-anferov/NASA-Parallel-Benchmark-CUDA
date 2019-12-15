@@ -22,21 +22,20 @@ thread_local dim3 gridDimXZ;
 thread_local dim3 gridElems;
 thread_local dim3 gridOffset;
 
-std::ostream& operator<<(std::ostream& o, const dim3& d) {
-    return o << "[" << d.x << "," << d.y << "," << d.z << "]";
-}
-
 void cuda_preinit()
 {
     int n;
     assert(cudaSuccess == cudaGetDeviceCount(&n));
     assert(n);
-    omp_set_num_threads(n);
+    omp_set_num_threads(std::min(omp_get_max_threads(), n));
 }
 
 void cuda_init()
 {
+    int n = omp_get_num_threads();
     int device = omp_get_thread_num();
+#pragma omp critical
+    std::cout << "Initializing device " << device + 1 << "/" << n << std::endl;
     assert(cudaSuccess == cudaSetDevice(device));
 }
 
@@ -63,21 +62,6 @@ void cuda_init_sizes()
     blockDimYZ.x = gridDimYZ.x = 1;
     blockDimXY.z = gridDimXY.z = 1;
     blockDimXZ.y = gridDimXZ.y = 1;
-
-    std::cerr << "blockDim_ " << blockDim_  << std::endl;
-    std::cerr << "gridDim_  " << gridDim_   << std::endl;
-
-    std::cerr << "blockDimYZ" << blockDimYZ << std::endl;
-    std::cerr << "gridDimYZ " << gridDimYZ  << std::endl;
-
-    std::cerr << "blockDimXY" << blockDimXY << std::endl;
-    std::cerr << "gridDimXY " << gridDimXY  << std::endl;
-
-    std::cerr << "blockDimXZ" << blockDimXZ << std::endl;
-    std::cerr << "gridDimXZ " << gridDimXZ  << std::endl;
-
-    std::cerr << "gridElems " << gridElems  << std::endl;
-    std::cerr << "gridOffset" << gridOffset << std::endl;
 }
 
 #endif
