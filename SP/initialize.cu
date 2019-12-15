@@ -33,11 +33,22 @@
 
 #include "header.h"
 #include <assert.h>
-#include "exact_solution.cu"
+
+__device__ void device_exact_solution(double xi, double eta, double zeta, double dtemp[5])
+{
+  int m;
+
+  for (m = 0; m < 5; m++) {
+    dtemp[m] = ce[m][0] +
+      xi  *(ce[m][1] + xi  *(ce[m][4] + xi  *(ce[m][7] + xi  *ce[m][10]))) +
+      eta *(ce[m][2] + eta *(ce[m][5] + eta *(ce[m][8] + eta *ce[m][11]))) +
+      zeta*(ce[m][3] + zeta*(ce[m][6] + zeta*(ce[m][9] + zeta*ce[m][12])));
+  }
+}
 
 __global__ void initialize_kernel(
     int* grid_points,
-    double (*u)/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*u)[JMAXP+1][IMAXP+1][5],
     double dnxm1, double dnym1, double dnzm1
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -77,17 +88,17 @@ __global__ void initialize_kernel(
 
         for (ix = 0; ix < 2; ix++) {
           Pxi = (double)ix;
-          exact_solution(Pxi, eta, zeta, &Pface[ix][0][0]);
+          device_exact_solution(Pxi, eta, zeta, &Pface[ix][0][0]);
         }
 
         for (iy = 0; iy < 2; iy++) {
           Peta = (double)iy;
-          exact_solution(xi, Peta, zeta, &Pface[iy][1][0]);
+          device_exact_solution(xi, Peta, zeta, &Pface[iy][1][0]);
         }
 
         for (iz = 0; iz < 2; iz++) {
           Pzeta = (double)iz;
-          exact_solution(xi, eta, Pzeta, &Pface[iz][2][0]);
+          device_exact_solution(xi, eta, Pzeta, &Pface[iz][2][0]);
         }
 
         for (m = 0; m < 5; m++) {
@@ -117,7 +128,7 @@ __global__ void initialize_kernel(
         zeta = (double)k * dnzm1;
         if (j >= 0 && j <= grid_points[1]-1) {
           eta = (double)j * dnym1;
-          exact_solution(xi, eta, zeta, temp);
+          device_exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
             u[k][j][i][m] = temp[m];
           }
@@ -133,7 +144,7 @@ __global__ void initialize_kernel(
         zeta = (double)k * dnzm1;
         if (j >= 0 && j <= grid_points[1]-1) {
           eta = (double)j * dnym1;
-          exact_solution(xi, eta, zeta, temp);
+          device_exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
             u[k][j][i][m] = temp[m];
           }
@@ -149,7 +160,7 @@ __global__ void initialize_kernel(
         zeta = (double)k * dnzm1;
         if (i >= 0 && i <= grid_points[0]-1) {
           xi = (double)i * dnxm1;
-          exact_solution(xi, eta, zeta, temp);
+          device_exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
             u[k][j][i][m] = temp[m];
           }
@@ -165,7 +176,7 @@ __global__ void initialize_kernel(
         zeta = (double)k * dnzm1;
         if (i >= 0 && i <= grid_points[0]-1) {
           xi = (double)i * dnxm1;
-          exact_solution(xi, eta, zeta, temp);
+          device_exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
             u[k][j][i][m] = temp[m];
           }
@@ -181,7 +192,7 @@ __global__ void initialize_kernel(
         eta = (double)j * dnym1;
         if (i >= 0 && i <= grid_points[0]-1) {
           xi = (double)i * dnxm1;
-          exact_solution(xi, eta, zeta, temp);
+          device_exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
             u[k][j][i][m] = temp[m];
           }
@@ -197,7 +208,7 @@ __global__ void initialize_kernel(
         eta = (double)j * dnym1;
         if (i >= 0 && i <= grid_points[0]-1) {
           xi = (double)i * dnxm1;
-          exact_solution(xi, eta, zeta, temp);
+          device_exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
             u[k][j][i][m] = temp[m];
           }
@@ -211,6 +222,59 @@ __global__ void initialize_kernel(
 //---------------------------------------------------------------------
 void initialize()
 {
-    initialize_kernel <<< gridDim_, blockDim_ >>> (grid_points, u, dnxm1, dnym1, dnzm1);
+    initialize_kernel <<< gridDim_, blockDim_ >>> (device_grid_points, device_u, dnxm1, dnym1, dnzm1);
     assert(cudaSuccess == cudaDeviceSynchronize());
+}
+
+void lhsinit(int ni, int nj)
+{
+  int j, m;
+
+  //---------------------------------------------------------------------
+  // zap the whole left hand side for starters
+  // set all diagonal values to 1. This is overkill, but convenient
+  //---------------------------------------------------------------------
+  for (j = 1; j <= nj; j++) {
+    for (m = 0; m < 5; m++) {
+      lhs [j][0][m] = 0.0;
+      lhsp[j][0][m] = 0.0;
+      lhsm[j][0][m] = 0.0;
+      lhs [j][ni][m] = 0.0;
+      lhsp[j][ni][m] = 0.0;
+      lhsm[j][ni][m] = 0.0;
+    }
+    lhs [j][0][2] = 1.0;
+    lhsp[j][0][2] = 1.0;
+    lhsm[j][0][2] = 1.0;
+    lhs [j][ni][2] = 1.0;
+    lhsp[j][ni][2] = 1.0;
+    lhsm[j][ni][2] = 1.0;
+  }
+}
+
+
+void lhsinitj(int nj, int ni)
+{
+  int i, m;
+
+  //---------------------------------------------------------------------
+  // zap the whole left hand side for starters
+  // set all diagonal values to 1. This is overkill, but convenient
+  //---------------------------------------------------------------------
+  for (i = 1; i <= ni; i++) {
+    for (m = 0; m < 5; m++) {
+      lhs [0][i][m] = 0.0;
+      lhsp[0][i][m] = 0.0;
+      lhsm[0][i][m] = 0.0;
+      lhs [nj][i][m] = 0.0;
+      lhsp[nj][i][m] = 0.0;
+      lhsm[nj][i][m] = 0.0;
+    }
+    lhs [0][i][2] = 1.0;
+    lhsp[0][i][2] = 1.0;
+    lhsm[0][i][2] = 1.0;
+    lhs [nj][i][2] = 1.0;
+    lhsp[nj][i][2] = 1.0;
+    lhsm[nj][i][2] = 1.0;
+  }
 }

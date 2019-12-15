@@ -41,12 +41,10 @@
 #include "header.h"
 #include "print_results.h"
 
-/* common /global/ */
-int *grid_points/*[3]*/;
+int *grid_points;
 int nx2, ny2, nz2;
 logical timeron;
 
-/* common /constants/ */
 double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt, 
        xxcon1, xxcon2, dnzm1, dtdssp, dttx1,
        xxcon3, xxcon4, xxcon5, dx1tx1, dx2tx1, dx3tx1,
@@ -58,32 +56,29 @@ double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt,
        c2dtty1, c2dttz1, comz1, comz4, comz5, comz6, 
        c3c4tx3, c3c4ty3, c3c4tz3;
 
-/* common /fields/ */
-double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
-double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
-double (*forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+double (*u)[JMAXP+1][IMAXP+1][5];
+double (*us)[JMAXP+1][IMAXP+1];
+double (*vs)[JMAXP+1][IMAXP+1];
+double (*ws)[JMAXP+1][IMAXP+1];
+double (*qs)[JMAXP+1][IMAXP+1];
+double (*rho_i)[JMAXP+1][IMAXP+1];
+double (*speed)[JMAXP+1][IMAXP+1];
+double (*square)[JMAXP+1][IMAXP+1];
+double (*rhs)[JMAXP+1][IMAXP+1][5];
+double (*forcing)[JMAXP+1][IMAXP+1][5];
 
-/* common /work_1d/ */
-double (*cv  )/*[PROBLEM_SIZE]*/;
-double (*rhon)/*[PROBLEM_SIZE]*/;
-double (*rhos)/*[PROBLEM_SIZE]*/;
-double (*rhoq)/*[PROBLEM_SIZE]*/;
-double (*cuf )/*[PROBLEM_SIZE]*/;
-double (*q   )/*[PROBLEM_SIZE]*/;
-double (*ue  )/*[PROBLEM_SIZE]*/[5];
-double (*buf )/*[PROBLEM_SIZE]*/[5];
+double (*cv);
+double (*rhon);
+double (*rhos);
+double (*rhoq);
+double (*cuf);
+double (*q);
+double (*ue)[5];
+double (*buf)[5];
 
-/* common /work_lhs/ */
-double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5];
-double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5];
-double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
+double (*lhs)[IMAXP+1][5];
+double (*lhsp)[IMAXP+1][5];
+double (*lhsm)[IMAXP+1][5];
 
 
 int main(int argc, char *argv[])
@@ -94,10 +89,9 @@ int main(int argc, char *argv[])
   char Class;
   char *t_names[t_last+1];
 
-#ifdef NEED_CUDA
-  cuda_init();
-#endif
-  allocate();
+  init_();
+  device_mem_alloc();
+  mem_alloc();
 
   //---------------------------------------------------------------------
   // Read input file (if it exists), else take
@@ -146,9 +140,7 @@ int main(int argc, char *argv[])
     grid_points[2] = PROBLEM_SIZE;
   }
 
-#ifdef NEED_CUDA
-  cuda_init_sizes();
-#endif
+  init_grid_();
 
   printf(" Size: %4dx%4dx%4d\n", 
       grid_points[0], grid_points[1], grid_points[2]);
@@ -174,6 +166,7 @@ int main(int argc, char *argv[])
 
   exact_rhs();
 
+  host_to_device_memcpy();
   initialize();
 
   //---------------------------------------------------------------------
@@ -198,6 +191,7 @@ int main(int argc, char *argv[])
   timer_stop(1);
   tmax = timer_read(1);
 
+  device_to_host_memcpy();
   verify(niter, &Class, &verified);
 
   if (tmax != 0.0) {
@@ -245,7 +239,8 @@ int main(int argc, char *argv[])
     }
   }
 
-  deallocate();
+  mem_free();
+  device_mem_free();
   return 0;
 }
 

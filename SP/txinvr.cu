@@ -39,13 +39,13 @@
 //---------------------------------------------------------------------
 __global__ void txinvr_kernel(
     int nx2, int ny2, int nz2,
-    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+    double (*us)[JMAXP+1][IMAXP+1],
+    double (*vs)[JMAXP+1][IMAXP+1],
+    double (*ws)[JMAXP+1][IMAXP+1],
+    double (*qs)[JMAXP+1][IMAXP+1],
+    double (*rho_i)[JMAXP+1][IMAXP+1],
+    double (*speed)[JMAXP+1][IMAXP+1],
+    double (*rhs)[JMAXP+1][IMAXP+1][5]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -87,7 +87,7 @@ void txinvr()
 {
   if (timeron) timer_start(t_txinvr);
   txinvr_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, us, vs, ws, qs, rho_i, speed, rhs
+    nx2, ny2, nz2, device_us, device_vs, device_ws, device_qs, device_rho_i, device_speed, device_rhs
   );
   assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_txinvr);

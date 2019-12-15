@@ -33,7 +33,34 @@
 
 #include <assert.h>
 #include "header.h"
-#include "initialize_kernel.cu"
+
+__device__ void lhsinit_kernel(
+    int ni, int nj,
+    double (*lhs)[5],
+    double (*lhsp)[5],
+    double (*lhsm)[5]
+) {
+  int m;
+
+  //---------------------------------------------------------------------
+  // zap the whole left hand side for starters
+  // set all diagonal values to 1. This is overkill, but convenient
+  //---------------------------------------------------------------------
+  for (m = 0; m < 5; m++) {
+    lhs [0][m] = 0.0;
+    lhsp[0][m] = 0.0;
+    lhsm[0][m] = 0.0;
+    lhs [ni][m] = 0.0;
+    lhsp[ni][m] = 0.0;
+    lhsm[ni][m] = 0.0;
+  }
+  lhs [0][2] = 1.0;
+  lhsp[0][2] = 1.0;
+  lhsm[0][2] = 1.0;
+  lhs [ni][2] = 1.0;
+  lhsp[ni][2] = 1.0;
+  lhsm[ni][2] = 1.0;
+}
 
 //---------------------------------------------------------------------
 // this function performs the solution of the approximate factorization
@@ -42,13 +69,14 @@
 // systems for the x-lines. Boundary conditions are non-periodic
 //---------------------------------------------------------------------
 __global__ void x_solve_kernel(
-    int *grid_points/*[3]*/,
     int nx2, int ny2, int nz2,
-    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double dttx1, double dttx2, double comz1, double comz4, double comz5, double comz6, double c2dttx1
+    double dttx1, double dttx2,
+    double comz1, double comz4, double comz5, double comz6, double c2dttx1,
+    int *grid_points,
+    double (*us)[JMAXP+1][IMAXP+1],
+    double (*rho_i)[JMAXP+1][IMAXP+1],
+    double (*speed)[JMAXP+1][IMAXP+1],
+    double (*rhs)[JMAXP+1][IMAXP+1][5]
 ) {
   int j = blockDim.y * blockIdx.y + threadIdx.y;
   int k = blockDim.z * blockIdx.z + threadIdx.z;
@@ -313,16 +341,10 @@ __global__ void x_solve_kernel(
 void x_solve() {
   if (timeron) timer_start(t_xsolve);
   x_solve_kernel <<< gridDimYZ, blockDimYZ >>> (
-    grid_points,
-    nx2, ny2, nz2,
-    us, rho_i, speed, rhs,
-    dttx1, dttx2, comz1, comz4, comz5, comz6, c2dttx1
+    nx2, ny2, nz2, dttx1, dttx2, comz1, comz4, comz5, comz6, c2dttx1, device_grid_points, device_us, device_rho_i, device_speed, device_rhs
   );
-  if (timeron) timer_stop(t_xsolve);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_xsolve);
 
-  //---------------------------------------------------------------------
-  // Do the block-diagonal inversion          
-  //---------------------------------------------------------------------
   ninvr();
 }

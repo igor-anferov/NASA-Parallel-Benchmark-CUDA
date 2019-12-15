@@ -39,26 +39,20 @@
 //                     config file
 //      niter_default: default number of iterations for this problem size
 //---------------------------------------------------------------------
-#pragma once
-
 #include "npbparams.h"
 #include "type.h"
-
 #include "timers.h"
-#ifdef NEED_CUDA
 #include <cuda_runtime.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* common /global/ */
-extern int *grid_points/*[3]*/;
+extern int *grid_points;
+extern __thread int *device_grid_points;
 extern int nx2, ny2, nz2;
 extern logical timeron;
 
-#ifdef NEED_CUDA
 extern dim3 blockDim_;
 extern dim3 gridDim_;
 
@@ -70,12 +64,8 @@ extern dim3 gridDimXY;
 
 extern dim3 blockDimXZ;
 extern dim3 gridDimXZ;
-#endif
 
-#ifdef __NVCC__
-__device__
-#endif
-static const double ce[5][13] = {
+__device__ static const double ce[5][13] = {
   { 2.0, 0.0, 0.0, 4.0, 5.0, 3.0, 0.5, 0.02, 0.01, 0.03, 0.5, 0.4, 0.3 },
   { 1.0, 0.0, 0.0, 0.0, 1.0, 2.0, 3.0, 0.01, 0.03, 0.02, 0.4, 0.3, 0.5 },
   { 2.0, 2.0, 0.0, 0.0, 0.0, 2.0, 3.0, 0.04, 0.03, 0.05, 0.3, 0.5, 0.4 },
@@ -129,7 +119,6 @@ static const double ce[5][13] = {
 #define con43 (4.0/3.0)
 #define con16 (1.0/6.0)
 
-/* common /constants/ */
 extern double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt, 
               xxcon1, xxcon2, dnzm1, dtdssp, dttx1,
               xxcon3, xxcon4, xxcon5, dx1tx1, dx2tx1, dx3tx1,
@@ -147,36 +136,40 @@ extern double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt,
 #define IMAXP   (IMAX/2*2)
 #define JMAXP   (JMAX/2*2)
 
-//---------------------------------------------------------------------
-// To improve cache performance, grid dimensions padded by 1 
-// for even number sizes only
-//---------------------------------------------------------------------
-/* common /fields/ */
-extern double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
-extern double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
-extern double (*forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern double (*u      )[JMAXP+1][IMAXP+1][5];
+extern double (*us     )[JMAXP+1][IMAXP+1];
+extern double (*vs     )[JMAXP+1][IMAXP+1];
+extern double (*ws     )[JMAXP+1][IMAXP+1];
+extern double (*qs     )[JMAXP+1][IMAXP+1];
+extern double (*rho_i  )[JMAXP+1][IMAXP+1];
+extern double (*speed  )[JMAXP+1][IMAXP+1];
+extern double (*square )[JMAXP+1][IMAXP+1];
+extern double (*rhs    )[JMAXP+1][IMAXP+1][5];
+extern double (*forcing)[JMAXP+1][IMAXP+1][5];
 
-/* common /work_1d/ */
-extern double (*cv  )/*[PROBLEM_SIZE]*/;
-extern double (*rhon)/*[PROBLEM_SIZE]*/;
-extern double (*rhos)/*[PROBLEM_SIZE]*/;
-extern double (*rhoq)/*[PROBLEM_SIZE]*/;
-extern double (*cuf )/*[PROBLEM_SIZE]*/;
-extern double (*q   )/*[PROBLEM_SIZE]*/;
-extern double (*ue  )/*[PROBLEM_SIZE]*/[5];
-extern double (*buf )/*[PROBLEM_SIZE]*/[5];
+extern __thread double (*device_u      )[JMAXP+1][IMAXP+1][5];
+extern __thread double (*device_us     )[JMAXP+1][IMAXP+1];
+extern __thread double (*device_vs     )[JMAXP+1][IMAXP+1];
+extern __thread double (*device_ws     )[JMAXP+1][IMAXP+1];
+extern __thread double (*device_qs     )[JMAXP+1][IMAXP+1];
+extern __thread double (*device_rho_i  )[JMAXP+1][IMAXP+1];
+extern __thread double (*device_speed  )[JMAXP+1][IMAXP+1];
+extern __thread double (*device_square )[JMAXP+1][IMAXP+1];
+extern __thread double (*device_rhs    )[JMAXP+1][IMAXP+1][5];
+extern __thread double (*device_forcing)[JMAXP+1][IMAXP+1][5];
 
-/* common /work_lhs/ */
-extern double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5];
-extern double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5];
-extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
+extern double (*cv  );
+extern double (*rhon);
+extern double (*rhos);
+extern double (*rhoq);
+extern double (*cuf );
+extern double (*q   );
+extern double (*ue  )[5];
+extern double (*buf )[5];
+
+extern double (*lhs )[IMAXP+1][5];
+extern double (*lhsp)[IMAXP+1][5];
+extern double (*lhsm)[IMAXP+1][5];
 
 //-----------------------------------------------------------------------
 // Timer constants
@@ -200,17 +193,13 @@ extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
 
 
 //-----------------------------------------------------------------------
-#ifdef NEED_CUDA
-void cuda_init();
-void cuda_init_sizes();
-#endif
-void allocate();
+void init_();
+void init_grid_();
+void host_to_device_memcpy();
+void device_to_host_memcpy();
 void initialize();
 void lhsinit(int ni, int nj);
 void lhsinitj(int nj, int ni);
-#ifdef __NVCC__
-__device__
-#endif
 void exact_solution(double xi, double eta, double zeta, double dtemp[5]);
 void exact_rhs();
 void set_constants();
@@ -227,21 +216,18 @@ void txinvr();
 void error_norm(double rms[5]);
 void rhs_norm(double rms[5]);
 void verify(int no_time_steps, char *Class, logical *verified);
-void deallocate();
-#ifdef __NVCC__
-__device__
-#endif
-void lhsinit_(int ni, int nj, 
-    double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5],
-    double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5],
-    double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5]);
-#ifdef __NVCC__
-__device__
-#endif
-void lhsinitj_(int nj, int ni,
-    double (*lhs )/*[IMAXP+1]*/[IMAXP+1][5],
-    double (*lhsp)/*[IMAXP+1]*/[IMAXP+1][5],
-    double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5]);
+void mem_alloc();
+void mem_free();
+void device_mem_alloc();
+void device_mem_free();
+__device__ void lhsinit_(int ni, int nj, 
+    double (*lhs )[IMAXP+1][5],
+    double (*lhsp)[IMAXP+1][5],
+    double (*lhsm)[IMAXP+1][5]);
+__device__  void lhsinitj_(int nj, int ni,
+    double (*lhs )[IMAXP+1][5],
+    double (*lhsp)[IMAXP+1][5],
+    double (*lhsm)[IMAXP+1][5]);
 
 #ifdef __cplusplus
 }

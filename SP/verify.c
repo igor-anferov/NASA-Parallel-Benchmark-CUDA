@@ -56,6 +56,7 @@ void verify(int no_time_steps, char *Class, logical *verified)
   //---------------------------------------------------------------------
   error_norm(xce);
   compute_rhs();
+  device_to_host_memcpy();
 
   rhs_norm(xcr);
 

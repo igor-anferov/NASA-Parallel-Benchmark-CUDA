@@ -35,18 +35,18 @@
 #include <assert.h>
 #include "header.h"
 
-__global__ void compute_rhs_intro(
+__global__ void rhs_start_kernel(
     int* grid_points,
-    double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double (*forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+    double (*u)[JMAXP+1][IMAXP+1][5],
+    double (*us)[JMAXP+1][IMAXP+1],
+    double (*vs)[JMAXP+1][IMAXP+1],
+    double (*ws)[JMAXP+1][IMAXP+1],
+    double (*qs)[JMAXP+1][IMAXP+1],
+    double (*rho_i)[JMAXP+1][IMAXP+1],
+    double (*speed)[JMAXP+1][IMAXP+1],
+    double (*square)[JMAXP+1][IMAXP+1],
+    double (*rhs)[JMAXP+1][IMAXP+1][5],
+    double (*forcing)[JMAXP+1][IMAXP+1][5]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -84,7 +84,6 @@ __global__ void compute_rhs_intro(
   if (k >= 0 && k <= grid_points[2]-1) {
     if (j >= 0 && j <= grid_points[1]-1) {
       if (i >= 0 && i <= grid_points[0]-1) {
-#pragma unroll
         for (m = 0; m < 5; m++) {
           rhs[k][j][i][m] = forcing[k][j][i][m];
         }
@@ -93,16 +92,16 @@ __global__ void compute_rhs_intro(
   }
 }
 
-__global__ void compute_rhsx(
+__global__ void rhs_xi_kernel(
     int nx2, int ny2, int nz2,
-    double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*u)[JMAXP+1][IMAXP+1][5],
+    double (*us)[JMAXP+1][IMAXP+1],
+    double (*vs)[JMAXP+1][IMAXP+1],
+    double (*ws)[JMAXP+1][IMAXP+1],
+    double (*qs)[JMAXP+1][IMAXP+1],
+    double (*rho_i)[JMAXP+1][IMAXP+1],
+    double (*square)[JMAXP+1][IMAXP+1],
+    double (*rhs)[JMAXP+1][IMAXP+1][5],
     double dx1tx1, double dx2tx1, double dx3tx1, double dx4tx1, double dx5tx1, double tx2,
     double xxcon2, double xxcon3, double xxcon4, double xxcon5
 ) {
@@ -157,14 +156,12 @@ __global__ void compute_rhsx(
     //---------------------------------------------------------------------
     if (j >= 1 && j <= ny2) {
       if (i == 1)
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m]- dssp * 
               (5.0*u[k][j][i][m] - 4.0*u[k][j][i+1][m] + u[k][j][i+2][m]);
           }
 
       if (i == 2)
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp * 
               (-4.0*u[k][j][i-1][m] + 6.0*u[k][j][i][m] -
@@ -174,7 +171,6 @@ __global__ void compute_rhsx(
 
     if (j >= 1 && j <= ny2) {
       if (i >= 3 && i <= nx2-2) {
-#pragma unroll
         for (m = 0; m < 5; m++) {
           rhs[k][j][i][m] = rhs[k][j][i][m] - dssp * 
             ( u[k][j][i-2][m] - 4.0*u[k][j][i-1][m] + 
@@ -186,7 +182,6 @@ __global__ void compute_rhsx(
 
     if (j >= 1 && j <= ny2) {
       if (i == nx2-1)
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp *
               ( u[k][j][i-2][m] - 4.0*u[k][j][i-1][m] + 
@@ -194,7 +189,6 @@ __global__ void compute_rhsx(
           }
 
       if (i == nx2)
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp *
               ( u[k][j][i-2][m] - 4.0*u[k][j][i-1][m] + 5.0*u[k][j][i][m] );
@@ -203,16 +197,16 @@ __global__ void compute_rhsx(
   }
 }
 
-__global__ void compute_rhsy(
+__global__ void rhs_eta_kernel(
     int nx2, int ny2, int nz2,
-    double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*u)[JMAXP+1][IMAXP+1][5],
+    double (*us)[JMAXP+1][IMAXP+1],
+    double (*vs)[JMAXP+1][IMAXP+1],
+    double (*ws)[JMAXP+1][IMAXP+1],
+    double (*qs)[JMAXP+1][IMAXP+1],
+    double (*rho_i)[JMAXP+1][IMAXP+1],
+    double (*square)[JMAXP+1][IMAXP+1],
+    double (*rhs)[JMAXP+1][IMAXP+1][5],
     double dy1ty1, double dy2ty1, double dy3ty1, double dy4ty1, double dy5ty1, double ty2,
     double yycon2, double yycon3, double yycon4, double yycon5
 ) {
@@ -267,7 +261,6 @@ __global__ void compute_rhsy(
     //---------------------------------------------------------------------
     if (j == 1)
         if (i >= 1 && i <= nx2) {
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m]- dssp * 
               ( 5.0*u[k][j][i][m] - 4.0*u[k][j+1][i][m] + u[k][j+2][i][m]);
@@ -276,7 +269,6 @@ __global__ void compute_rhsy(
 
     if (j == 2)
         if (i >= 1 && i <= nx2) {
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp * 
               (-4.0*u[k][j-1][i][m] + 6.0*u[k][j][i][m] -
@@ -286,7 +278,6 @@ __global__ void compute_rhsy(
 
     if (j >= 3 && j <= ny2-2) {
       if (i >= 1 && i <= nx2) {
-#pragma unroll
         for (m = 0; m < 5; m++) {
           rhs[k][j][i][m] = rhs[k][j][i][m] - dssp * 
             ( u[k][j-2][i][m] - 4.0*u[k][j-1][i][m] + 
@@ -298,7 +289,6 @@ __global__ void compute_rhsy(
 
     if (j == ny2-1)
         if (i >= 1 && i <= nx2) {
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp *
               ( u[k][j-2][i][m] - 4.0*u[k][j-1][i][m] + 
@@ -308,7 +298,6 @@ __global__ void compute_rhsy(
 
     if (j == ny2)
         if (i >= 1 && i <= nx2) {
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp *
               ( u[k][j-2][i][m] - 4.0*u[k][j-1][i][m] + 5.0*u[k][j][i][m] );
@@ -317,16 +306,16 @@ __global__ void compute_rhsy(
   }
 }
 
-__global__ void compute_rhsz(
+__global__ void rhs_zeta_kernel(
     int nx2, int ny2, int nz2,
-    double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*u)[JMAXP+1][IMAXP+1][5],
+    double (*us)[JMAXP+1][IMAXP+1],
+    double (*vs)[JMAXP+1][IMAXP+1],
+    double (*ws)[JMAXP+1][IMAXP+1],
+    double (*qs)[JMAXP+1][IMAXP+1],
+    double (*rho_i)[JMAXP+1][IMAXP+1],
+    double (*square)[JMAXP+1][IMAXP+1],
+    double (*rhs)[JMAXP+1][IMAXP+1][5],
     double dz1tz1, double dz2tz1, double dz3tz1, double dz4tz1, double dz5tz1, double tz2,
     double zzcon2, double zzcon3, double zzcon4, double zzcon5
 ) {
@@ -383,7 +372,6 @@ __global__ void compute_rhsz(
   if (k == 1)
       if (j >= 1 && j <= ny2) {
         if (i >= 1 && i <= nx2) {
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m]- dssp * 
               (5.0*u[k][j][i][m] - 4.0*u[k+1][j][i][m] + u[k+2][j][i][m]);
@@ -394,7 +382,6 @@ __global__ void compute_rhsz(
   if (k == 2)
       if (j >= 1 && j <= ny2) {
         if (i >= 1 && i <= nx2) {
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp * 
               (-4.0*u[k-1][j][i][m] + 6.0*u[k][j][i][m] -
@@ -406,7 +393,6 @@ __global__ void compute_rhsz(
   if (k >= 3 && k <= nz2-2) {
     if (j >= 1 && j <= ny2) {
       if (i >= 1 && i <= nx2) {
-#pragma unroll
         for (m = 0; m < 5; m++) {
           rhs[k][j][i][m] = rhs[k][j][i][m] - dssp * 
             ( u[k-2][j][i][m] - 4.0*u[k-1][j][i][m] + 
@@ -420,7 +406,6 @@ __global__ void compute_rhsz(
   if (k == nz2-1)
       if (j >= 1 && j <= ny2) {
         if (i >= 1 && i <= nx2) {
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp *
               ( u[k-2][j][i][m] - 4.0*u[k-1][j][i][m] + 
@@ -432,7 +417,6 @@ __global__ void compute_rhsz(
   if (k == nz2)
       if (j >= 1 && j <= ny2) {
         if (i >= 1 && i <= nx2) {
-#pragma unroll
           for (m = 0; m < 5; m++) {
             rhs[k][j][i][m] = rhs[k][j][i][m] - dssp *
               ( u[k-2][j][i][m] - 4.0*u[k-1][j][i][m] + 5.0*u[k][j][i][m] );
@@ -441,16 +425,16 @@ __global__ void compute_rhsz(
       }
 }
 
-__global__ void compute_rhs_tail(
+__global__ void rhs_end_kernel(
     int nx2, int ny2, int nz2,
-    double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*u)[JMAXP+1][IMAXP+1][5],
+    double (*us)[JMAXP+1][IMAXP+1],
+    double (*vs)[JMAXP+1][IMAXP+1],
+    double (*ws)[JMAXP+1][IMAXP+1],
+    double (*qs)[JMAXP+1][IMAXP+1],
+    double (*rho_i)[JMAXP+1][IMAXP+1],
+    double (*square)[JMAXP+1][IMAXP+1],
+    double (*rhs)[JMAXP+1][IMAXP+1][5],
     double dt
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -461,7 +445,6 @@ __global__ void compute_rhs_tail(
   if (k >= 1 && k <= nz2) {
     if (j >= 1 && j <= ny2) {
       if (i >= 1 && i <= nx2) {
-#pragma unroll
         for (m = 0; m < 5; m++) {
           rhs[k][j][i][m] = rhs[k][j][i][m] * dt;
         }
@@ -474,16 +457,16 @@ void compute_rhs()
 {
   if (timeron) timer_start(t_rhs);
 
-  compute_rhs_intro <<< gridDim_, blockDim_ >>> (
-    grid_points, u, us, vs, ws, qs, rho_i, speed, square, rhs, forcing 
+  rhs_start_kernel <<< gridDim_, blockDim_ >>> (
+    device_grid_points, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_speed, device_square, device_rhs, device_forcing 
   );
 
   //---------------------------------------------------------------------
   // compute xi-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsx);
-  compute_rhsx <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, u, us, vs, ws, qs, rho_i, square, rhs, dx1tx1, dx2tx1, dx3tx1, dx4tx1, dx5tx1, tx2, xxcon2, xxcon3, xxcon4, xxcon5
+  rhs_xi_kernel <<< gridDim_, blockDim_ >>> (
+    nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_square, device_rhs, dx1tx1, dx2tx1, dx3tx1, dx4tx1, dx5tx1, tx2, xxcon2, xxcon3, xxcon4, xxcon5
   );
   if (timeron) timer_stop(t_rhsx);
 
@@ -491,8 +474,8 @@ void compute_rhs()
   // compute eta-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsy);
-  compute_rhsy <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, u, us, vs, ws, qs, rho_i, square, rhs, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1, ty2, yycon2, yycon3, yycon4, yycon5
+  rhs_eta_kernel <<< gridDim_, blockDim_ >>> (
+    nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_square, device_rhs, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1, ty2, yycon2, yycon3, yycon4, yycon5
   );
   if (timeron) timer_stop(t_rhsy);
 
@@ -500,15 +483,15 @@ void compute_rhs()
   // compute zeta-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsz);
-  compute_rhsz <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, u, us, vs, ws, qs, rho_i, square, rhs, dz1tz1, dz2tz1, dz3tz1, dz4tz1, dz5tz1, tz2, zzcon2, zzcon3, zzcon4, zzcon5
+  rhs_zeta_kernel <<< gridDim_, blockDim_ >>> (
+    nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_square, device_rhs, dz1tz1, dz2tz1, dz3tz1, dz4tz1, dz5tz1, tz2, zzcon2, zzcon3, zzcon4, zzcon5
   );
   if (timeron) timer_stop(t_rhsz);
 
-  compute_rhs_tail <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, u, us, vs, ws, qs, rho_i, square, rhs, dt
+  rhs_end_kernel <<< gridDim_, blockDim_ >>> (
+    nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_square, device_rhs, dt
   );
 
-  if (timeron) timer_stop(t_rhs);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_rhs);
 }

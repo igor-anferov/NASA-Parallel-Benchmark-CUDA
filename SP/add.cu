@@ -39,8 +39,8 @@
 //---------------------------------------------------------------------
 __global__ void add_kernel(
     int nx2, int ny2, int nz2,
-    double (*u  )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double (*rhs)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+    double (*u)[JMAXP+1][IMAXP+1][5],
+    double (*rhs)[JMAXP+1][IMAXP+1][5]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -50,7 +50,6 @@ __global__ void add_kernel(
   if (k >= 1 && k <= nz2) {
     if (j >= 1 && j <= ny2) {
       if (i >= 1 && i <= nx2) {
-#pragma unroll
         for (m = 0; m < 5; m++) {
           u[k][j][i][m] = u[k][j][i][m] + rhs[k][j][i][m];
         }
@@ -63,8 +62,8 @@ void add()
 {
   if (timeron) timer_start(t_add);
   add_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, u, rhs
+    nx2, ny2, nz2, device_u, device_rhs
   );
-  if (timeron) timer_stop(t_add);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_add);
 }

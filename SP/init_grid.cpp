@@ -1,7 +1,4 @@
-#ifdef NEED_CUDA
-
 #include "header.h"
-
 #include <assert.h>
 #include <cuda_runtime.h>
 
@@ -17,18 +14,12 @@ dim3 gridDimXY;
 dim3 blockDimXZ;
 dim3 gridDimXZ;
 
-void cuda_init()
+void init_()
 {
-    int device = 0;
-    assert(cudaSuccess == cudaSetDeviceFlags(cudaDeviceMapHost));
-    assert(cudaSuccess == cudaSetDevice(device));
-    cudaDeviceProp deviceProp;
-    cudaGetDeviceProperties(&deviceProp, device);
-    assert(deviceProp.canMapHostMemory);
-    assert(deviceProp.unifiedAddressing);
+    assert(cudaSuccess == cudaSetDevice(0));
 }
 
-void cuda_init_sizes()
+void init_grid_()
 {
     blockDim_ = blockDimYZ = blockDimXY = blockDimXZ = dim3(8, 8, 8);
     gridDim_ = gridDimYZ = gridDimXY = gridDimXZ = dim3(
@@ -40,5 +31,3 @@ void cuda_init_sizes()
     blockDimXY.z = gridDimXY.z = 1;
     blockDimXZ.y = gridDimXZ.y = 1;
 }
-
-#endif

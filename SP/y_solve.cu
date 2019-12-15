@@ -33,7 +33,35 @@
 
 #include <assert.h>
 #include "header.h"
-#include "initialize_kernelj.cu"
+
+__device__ void lhsinitj_kernel_y(
+    int nj, int ni,
+    double (*lhs)[5],
+    double (*lhsp)[5],
+    double (*lhsm)[5]
+) {
+  int m;
+
+  //---------------------------------------------------------------------
+  // zap the whole left hand side for starters
+  // set all diagonal values to 1. This is overkill, but convenient
+  //---------------------------------------------------------------------
+  for (m = 0; m < 5; m++) {
+    lhs [0][m] = 0.0;
+    lhsp[0][m] = 0.0;
+    lhsm[0][m] = 0.0;
+    lhs [nj][m] = 0.0;
+    lhsp[nj][m] = 0.0;
+    lhsm[nj][m] = 0.0;
+  }
+  lhs [0][2] = 1.0;
+  lhsp[0][2] = 1.0;
+  lhsm[0][2] = 1.0;
+  lhs [nj][2] = 1.0;
+  lhsp[nj][2] = 1.0;
+  lhsm[nj][2] = 1.0;
+  
+}
 
 //---------------------------------------------------------------------
 // this function performs the solution of the approximate factorization
@@ -42,13 +70,14 @@
 // systems for the y-lines. Boundary conditions are non-periodic
 //---------------------------------------------------------------------
 __global__ void y_solve_kernel(
-    int *grid_points/*[3]*/,
     int nx2, int ny2, int nz2,
-    double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double dtty1, double dtty2, double comz1, double comz4, double comz5, double comz6, double c2dtty1
+    double dtty1, double dtty2,
+    double comz1, double comz4, double comz5, double comz6, double c2dtty1,
+    int *grid_points,
+    double (*vs)[JMAXP+1][IMAXP+1],
+    double (*rho_i)[JMAXP+1][IMAXP+1],
+    double (*speed)[JMAXP+1][IMAXP+1],
+    double (*rhs)[JMAXP+1][IMAXP+1][5]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int k = blockDim.z * blockIdx.z + threadIdx.z;
@@ -63,7 +92,7 @@ __global__ void y_solve_kernel(
   double ru1, fac1, fac2;
 
   if (k >= 1 && k <= grid_points[2]-2) {
-    lhsinitj_kernel(ny2+1, nx2, lhs, lhsp, lhsm);
+    lhsinitj_kernel_y(ny2+1, nx2, lhs, lhsp, lhsm);
 
     //---------------------------------------------------------------------
     // Computes the left hand side for the three y-factors   
@@ -307,10 +336,7 @@ __global__ void y_solve_kernel(
 void y_solve() {
   if (timeron) timer_start(t_ysolve);
   y_solve_kernel <<< gridDimXZ, blockDimXZ >>> (
-    grid_points,
-    nx2, ny2, nz2,
-    vs, rho_i, speed, rhs,
-    dtty1, dtty2, comz1, comz4, comz5, comz6, c2dtty1
+    nx2, ny2, nz2, dtty1, dtty2, comz1, comz4, comz5, comz6, c2dtty1, device_grid_points, device_vs, device_rho_i, device_speed, device_rhs
   );
   assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_ysolve);

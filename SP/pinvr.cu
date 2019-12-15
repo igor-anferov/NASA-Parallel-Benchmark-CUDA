@@ -39,7 +39,7 @@
 //---------------------------------------------------------------------
 __global__ void pinvr_kernel(
     int nx2, int ny2, int nz2,
-    double (*rhs)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+    double (*rhs)[JMAXP+1][IMAXP+1][5]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -72,7 +72,7 @@ void pinvr()
 {
   if (timeron) timer_start(t_pinvr);
   pinvr_kernel <<< gridDim_, blockDim_ >>> (
-    nx2, ny2, nz2, rhs
+    nx2, ny2, nz2, device_rhs
   );
   assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_pinvr);
