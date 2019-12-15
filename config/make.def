@@ -95,6 +95,7 @@ C_LIB  = -lm
 # These macros are passed to the compiler 
 #---------------------------------------------------------------------------
 C_INC = -I../common
+C_INC_pp = ${C_INC}
 
 #---------------------------------------------------------------------------
 # Global *compile time* flags for C programs
