@@ -320,8 +320,8 @@ void x_solve() {
     dev_us, dev_rho_i, dev_speed, dev_rhs,
     dttx1, dttx2, comz1, comz4, comz5, comz6, c2dttx1
   );
-  if (timeron) timer_stop(t_xsolve);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_xsolve);
 
   //---------------------------------------------------------------------
   // Do the block-diagonal inversion          

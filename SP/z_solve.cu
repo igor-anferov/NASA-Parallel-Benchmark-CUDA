@@ -327,8 +327,8 @@ void z_solve() {
     dev_ws, dev_rho_i, dev_speed, dev_rhs,
     dttz1, dttz2, comz1, comz4, comz5, comz6, c2dttz1
   );
-  if (timeron) timer_stop(t_zsolve);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_zsolve);
 
   tzetar();
 }

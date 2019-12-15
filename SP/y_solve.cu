@@ -320,8 +320,8 @@ void y_solve() {
     dev_vs, dev_rho_i, dev_speed, dev_rhs,
     dtty1, dtty2, comz1, comz4, comz5, comz6, c2dtty1
   );
-  if (timeron) timer_stop(t_ysolve);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_ysolve);
 
   pinvr();
 }

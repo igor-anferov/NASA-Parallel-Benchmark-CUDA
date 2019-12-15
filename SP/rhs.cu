@@ -491,7 +491,10 @@ void compute_rhs()
   compute_rhs_xi <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dx1tx1, dx2tx1, dx3tx1, dx4tx1, dx5tx1, tx2, xxcon2, xxcon3, xxcon4, xxcon5
   );
-  if (timeron) timer_stop(t_rhsx);
+  if (timeron) {
+    assert(cudaSuccess == cudaDeviceSynchronize());
+    timer_stop(t_rhsx);
+  }
 
   //---------------------------------------------------------------------
   // compute eta-direction fluxes 
@@ -500,7 +503,10 @@ void compute_rhs()
   compute_rhs_eta <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1, ty2, yycon2, yycon3, yycon4, yycon5
   );
-  if (timeron) timer_stop(t_rhsy);
+  if (timeron) {
+    assert(cudaSuccess == cudaDeviceSynchronize());
+    timer_stop(t_rhsy);
+  }
 
   //---------------------------------------------------------------------
   // compute zeta-direction fluxes 
@@ -514,12 +520,15 @@ void compute_rhs()
   compute_rhs_zeta <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dz1tz1, dz2tz1, dz3tz1, dz4tz1, dz5tz1, tz2, zzcon2, zzcon3, zzcon4, zzcon5
   );
-  if (timeron) timer_stop(t_rhsz);
+  if (timeron) {
+    assert(cudaSuccess == cudaDeviceSynchronize());
+    timer_stop(t_rhsz);
+  }
 
   compute_rhs_tail <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dt
   );
 
-  if (timeron) timer_stop(t_rhs);
   assert(cudaSuccess == cudaDeviceSynchronize());
+  if (timeron) timer_stop(t_rhs);
 }
