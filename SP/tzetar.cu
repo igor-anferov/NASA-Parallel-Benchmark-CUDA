@@ -91,9 +91,6 @@ __global__ void tzetar_kernel(
 
 void tzetar()
 {
-  cuda_memcpy_device_to_host();
-#pragma omp barrier
-  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_tzetar);
   tzetar_kernel <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_speed, dev_rhs
