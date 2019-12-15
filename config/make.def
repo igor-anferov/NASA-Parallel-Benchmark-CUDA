@@ -81,6 +81,11 @@ FLINKFLAGS = -O3 -mcmodel=medium
 CC = gcc
 CC_pp = g++
 
+ifdef HOST_COMP
+CC = ${HOST_COMP}
+CC_pp = ${HOST_COMP}
+endif
+
 #---------------------------------------------------------------------------
 # This links C programs; usually the same as ${CC}
 #---------------------------------------------------------------------------

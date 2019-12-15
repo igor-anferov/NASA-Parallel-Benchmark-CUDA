@@ -6,7 +6,7 @@ ifdef NEED_CUDA
 override CCOMPILE += -DNEED_CUDA -fopenmp
 override CCOMPILE_pp += -DNEED_CUDA -fopenmp
 override CLINKFLAGS += -fopenmp
-override C_LIB += -lcudart
+override C_LIB += -lcudart -lstdc++
 endif
 
 # Class "U" is used internally by the setparams program to mean
