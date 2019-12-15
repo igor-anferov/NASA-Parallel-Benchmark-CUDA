@@ -3,6 +3,7 @@ BENCHMARK=sp
 BENCHMARKU=SP
 DEVICE_CC=nvcc
 ARCH=sm_60
+HOST_COMP ?= ${CC_pp}
 
 include ../config/make.def
 
@@ -35,7 +36,7 @@ ${PROGRAM}: config ${OBJS}
 	${CLINK} ${CLINKFLAGS} -o ${PROGRAM} ${OBJS} ${C_LIB}
 
 %.cu.o:: %.cu  header.h npbparams.h
-	${DEVICE_CC} -Xcompiler -fopenmp -Xcompiler -rdynamic -lineinfo -g -O3 -arch ${ARCH} ${C_INC} $< -c -o $@
+	${DEVICE_CC} -ccbin ${HOST_COMP} -Xcompiler -fopenmp -Xcompiler -rdynamic -lineinfo -g -O3 -arch ${ARCH} ${C_INC} $< -c -o $@
 
 %.o:: %.c  header.h npbparams.h
 	${CCOMPILE} $< -o $@
