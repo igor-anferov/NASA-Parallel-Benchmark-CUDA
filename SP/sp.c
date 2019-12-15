@@ -94,10 +94,8 @@ int main(int argc, char *argv[])
   char Class;
   char *t_names[t_last+1];
 
-#ifdef NEED_CUDA
   cuda_init();
-#endif
-  allocate();
+  mem_alloc();
 
   //---------------------------------------------------------------------
   // Read input file (if it exists), else take
@@ -146,9 +144,7 @@ int main(int argc, char *argv[])
     grid_points[2] = PROBLEM_SIZE;
   }
 
-#ifdef NEED_CUDA
   cuda_init_sizes();
-#endif
 
   printf(" Size: %4dx%4dx%4d\n", 
       grid_points[0], grid_points[1], grid_points[2]);
@@ -245,7 +241,7 @@ int main(int argc, char *argv[])
     }
   }
 
-  deallocate();
+  mem_free();
   return 0;
 }
 

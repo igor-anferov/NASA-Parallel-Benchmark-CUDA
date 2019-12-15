@@ -1,7 +1,4 @@
-#ifdef NEED_CUDA
-
 #include "header.h"
-
 #include <assert.h>
 #include <cuda_runtime.h>
 
@@ -40,5 +37,3 @@ void cuda_init_sizes()
     blockDimXY.z = gridDimXY.z = 1;
     blockDimXZ.y = gridDimXZ.y = 1;
 }
-
-#endif

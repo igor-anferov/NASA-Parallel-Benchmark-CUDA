@@ -1,1 +1,0 @@
-exact_solution.cu

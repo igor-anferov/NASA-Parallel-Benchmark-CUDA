@@ -45,9 +45,7 @@
 #include "type.h"
 
 #include "timers.h"
-#ifdef NEED_CUDA
 #include <cuda_runtime.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,7 +56,6 @@ extern int *grid_points/*[3]*/;
 extern int nx2, ny2, nz2;
 extern logical timeron;
 
-#ifdef NEED_CUDA
 extern dim3 blockDim_;
 extern dim3 gridDim_;
 
@@ -70,7 +67,6 @@ extern dim3 gridDimXY;
 
 extern dim3 blockDimXZ;
 extern dim3 gridDimXZ;
-#endif
 
 #ifdef __NVCC__
 __device__
@@ -200,11 +196,10 @@ extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
 
 
 //-----------------------------------------------------------------------
-#ifdef NEED_CUDA
 void cuda_init();
 void cuda_init_sizes();
-#endif
-void allocate();
+void mem_alloc();
+void mem_free();
 void initialize();
 void lhsinit(int ni, int nj);
 void lhsinitj(int nj, int ni);
@@ -227,7 +222,6 @@ void txinvr();
 void error_norm(double rms[5]);
 void rhs_norm(double rms[5]);
 void verify(int no_time_steps, char *Class, logical *verified);
-void deallocate();
 #ifdef __NVCC__
 __device__
 #endif
