@@ -118,6 +118,8 @@ int main(int argc, char *argv[])
     t_names[t_pinvr] = "pinvr";
     t_names[t_txinvr] = "txinvr";
     t_names[t_add] = "add";
+    t_names[t_init] = "initialization";
+    t_names[t_comm] = "communications";
     fclose(fp);
   } else {
     timeron = false;

@@ -56,6 +56,10 @@ void deallocate_device()
 
 void cuda_memcpy_host_to_device()
 {
+    if (timeron) {
+        assert(cudaSuccess == cudaDeviceSynchronize());
+        timer_start(t_comm);
+    }
     HOST2DEV(grid_points, 3);
 /* common /fields/ */
     HOST2DEV(u, KMAX);
@@ -68,10 +72,18 @@ void cuda_memcpy_host_to_device()
     HOST2DEV(square, KMAX);
     HOST2DEV(rhs, KMAX);
     HOST2DEV(forcing, KMAX);
+    if (timeron) {
+        assert(cudaSuccess == cudaDeviceSynchronize());
+        timer_stop(t_comm);
+    }
 }
 
 void cuda_memcpy_device_to_host()
 {
+    if (timeron) {
+        assert(cudaSuccess == cudaDeviceSynchronize());
+        timer_start(t_comm);
+    }
     DEV2HOST(grid_points, 3);
 /* common /fields/ */
     DEV2HOST_PART(u, KMAX);
@@ -84,4 +96,8 @@ void cuda_memcpy_device_to_host()
     DEV2HOST_PART(square, KMAX);
     DEV2HOST_PART(rhs, KMAX);
     DEV2HOST_PART(forcing, KMAX);
+    if (timeron) {
+        assert(cudaSuccess == cudaDeviceSynchronize());
+        timer_stop(t_comm);
+    }
 }

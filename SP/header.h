@@ -229,7 +229,9 @@ extern double (*lhsm)/*[IMAXP+1]*/[IMAXP+1][5];
 #define t_ninvr     13
 #define t_tzetar    14
 #define t_add       15
-#define t_last      15
+#define t_init      16
+#define t_comm      17
+#define t_last      17
 
 
 //-----------------------------------------------------------------------
