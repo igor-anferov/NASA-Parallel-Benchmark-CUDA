@@ -55,10 +55,17 @@ void verify(int no_time_steps, char *Class, logical *verified)
   // compute the error norm and the residual norm, and exit if not printing
   //---------------------------------------------------------------------
   error_norm(xce);
-  compute_rhs();
 #ifdef NEED_CUDA
-  cuda_memcpy_device_to_host();
-#pragma omp barrier
+#pragma omp parallel
+  {
+    allocate_device();
+    cuda_memcpy_host_to_device();
+#endif
+    compute_rhs();
+#ifdef NEED_CUDA
+    cuda_memcpy_device_to_host();
+    deallocate_device();
+  }
 #endif
 
   rhs_norm(xcr);

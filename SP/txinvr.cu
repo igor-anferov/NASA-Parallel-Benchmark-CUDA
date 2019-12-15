@@ -86,6 +86,9 @@ __global__ void txinvr_kernel(
 
 void txinvr()
 {
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_txinvr);
   txinvr_kernel <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_speed, dev_rhs

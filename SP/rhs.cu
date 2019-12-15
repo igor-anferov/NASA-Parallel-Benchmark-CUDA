@@ -477,6 +477,9 @@ __global__ void compute_rhs_tail(
 
 void compute_rhs()
 {
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_rhs);
 
   compute_rhs_intro <<< gridDim_, blockDim_ >>> (
@@ -486,6 +489,9 @@ void compute_rhs()
   //---------------------------------------------------------------------
   // compute xi-direction fluxes 
   //---------------------------------------------------------------------
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_rhsx);
   compute_rhs_xi <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dx1tx1, dx2tx1, dx3tx1, dx4tx1, dx5tx1, tx2, xxcon2, xxcon3, xxcon4, xxcon5
@@ -495,6 +501,9 @@ void compute_rhs()
   //---------------------------------------------------------------------
   // compute eta-direction fluxes 
   //---------------------------------------------------------------------
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_rhsy);
   compute_rhs_eta <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1, ty2, yycon2, yycon3, yycon4, yycon5
@@ -504,12 +513,18 @@ void compute_rhs()
   //---------------------------------------------------------------------
   // compute zeta-direction fluxes 
   //---------------------------------------------------------------------
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_rhsz);
   compute_rhs_zeta <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dz1tz1, dz2tz1, dz3tz1, dz4tz1, dz5tz1, tz2, zzcon2, zzcon3, zzcon4, zzcon5
   );
   if (timeron) timer_stop(t_rhsz);
 
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   compute_rhs_tail <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_u, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_square, dev_rhs, dt
   );

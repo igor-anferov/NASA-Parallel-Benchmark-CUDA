@@ -50,8 +50,8 @@ __global__ void z_solve_kernel(
     double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
     double dttz1, double dttz2, double comz1, double comz4, double comz5, double comz6, double c2dttz1
 ) {
-  int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
-  int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
+  int i = blockDim.x * blockIdx.x + threadIdx.x;
+  int j = blockDim.y * blockIdx.y + threadIdx.y;
 
   double cv  [PROBLEM_SIZE];
   double rhos[PROBLEM_SIZE];

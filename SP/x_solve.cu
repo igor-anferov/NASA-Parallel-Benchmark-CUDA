@@ -312,6 +312,9 @@ __global__ void x_solve_kernel(
 }
 
 void x_solve() {
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_xsolve);
   x_solve_kernel <<< gridDimYZ, blockDimYZ >>> (
     gridOffset,

@@ -71,6 +71,9 @@ __global__ void pinvr_kernel(
 
 void pinvr()
 {
+  cuda_memcpy_device_to_host();
+#pragma omp barrier
+  cuda_memcpy_host_to_device();
   if (timeron) timer_start(t_pinvr);
   pinvr_kernel <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_rhs

@@ -1,10 +1,11 @@
 PROGRAM  = $(BINDIR)/$(BENCHMARK).$(CLASS).x
 CCOMPILE = $(CC)  -c $(C_INC) $(CFLAGS)
-CCOMPILE_pp = $(CC_pp)  -c $(C_INC_pp) $(CFLAGS_pp)
+CCOMPILE_pp = $(CC_pp)  -c $(C_INC_pp) $(CFLAGS_pp) -std=gnu++11
 
 ifdef NEED_CUDA
 CCOMPILE += -DNEED_CUDA -fopenmp
 CCOMPILE_pp += -DNEED_CUDA -fopenmp
+CLINKFLAGS += -fopenmp
 endif
 
 # Class "U" is used internally by the setparams program to mean

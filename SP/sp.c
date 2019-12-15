@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
 
 #ifdef NEED_CUDA
   cuda_preinit();
-#pragma omp parallel
+#pragma omp parallel private(step)
   {
     cuda_init();
     allocate_device();
@@ -191,6 +191,7 @@ int main(int argc, char *argv[])
     timer_start(1);
 
     for (step = 1; step <= niter; step++) {
+#pragma omp single
       if ((step % 20) == 0 || step == 1) {
         printf(" Time step %4d\n", step);
       }
@@ -203,15 +204,11 @@ int main(int argc, char *argv[])
 
 #ifdef NEED_CUDA
     cuda_memcpy_device_to_host();
-#pragma omp barrier
-#endif
-
-    verify(niter, &Class, &verified);
-
-#ifdef NEED_CUDA
     deallocate_device();
   }
 #endif
+
+  verify(niter, &Class, &verified);
 
   if (tmax != 0.0) {
     n3 = grid_points[0]*grid_points[1]*grid_points[2];

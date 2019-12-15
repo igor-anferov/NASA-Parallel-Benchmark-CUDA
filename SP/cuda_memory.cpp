@@ -15,11 +15,12 @@ __thread double (*dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 __thread double (*dev_rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
 __thread double (*dev_forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
 
-#define ALLOCATE(ptr, size) assert(cudaSuccess == cudaMalloc((void**)&(ptr), (size)*sizeof(*ptr)))
+#define ALLOCATE(ptr, size) assert(cudaSuccess == cudaMalloc((void**)&(ptr), (size)*sizeof(*(ptr))))
 #define DEALLOCATE(ptr) assert(cudaSuccess == cudaFree(ptr))
-#define MEMCPY(src, dst, size, kind) assert(cudaSuccess == cudaMemcpy(dst, src, (size)*sizeof(*src), kind))
+#define MEMCPY(src, dst, size, kind) assert(cudaSuccess == cudaMemcpy(dst, src, (size)*sizeof(*(src)), kind))
 #define HOST2DEV(ptr, size) MEMCPY(ptr, dev_ ## ptr, size, cudaMemcpyHostToDevice)
-#define DEV2HOST(ptr, size) MEMCPY(dev_ ## ptr + gridOffset.z, ptr + gridOffset.z, gridElems.z, cudaMemcpyDeviceToHost)
+#define DEV2HOST(ptr, size) MEMCPY(dev_ ## ptr, ptr, size, cudaMemcpyDeviceToHost)
+#define DEV2HOST_PART(ptr, size) DEV2HOST(ptr + gridOffset.z, gridElems.z)
 
 void allocate_device()
 {
@@ -56,6 +57,7 @@ void deallocate_device()
 void cuda_memcpy_host_to_device()
 {
     HOST2DEV(grid_points, 3);
+/* common /fields/ */
     HOST2DEV(u, KMAX);
     HOST2DEV(us, KMAX);
     HOST2DEV(vs, KMAX);
@@ -71,14 +73,15 @@ void cuda_memcpy_host_to_device()
 void cuda_memcpy_device_to_host()
 {
     DEV2HOST(grid_points, 3);
-    DEV2HOST(u, KMAX);
-    DEV2HOST(us, KMAX);
-    DEV2HOST(vs, KMAX);
-    DEV2HOST(ws, KMAX);
-    DEV2HOST(qs, KMAX);
-    DEV2HOST(rho_i, KMAX);
-    DEV2HOST(speed, KMAX);
-    DEV2HOST(square, KMAX);
-    DEV2HOST(rhs, KMAX);
-    DEV2HOST(forcing, KMAX);
+/* common /fields/ */
+    DEV2HOST_PART(u, KMAX);
+    DEV2HOST_PART(us, KMAX);
+    DEV2HOST_PART(vs, KMAX);
+    DEV2HOST_PART(ws, KMAX);
+    DEV2HOST_PART(qs, KMAX);
+    DEV2HOST_PART(rho_i, KMAX);
+    DEV2HOST_PART(speed, KMAX);
+    DEV2HOST_PART(square, KMAX);
+    DEV2HOST_PART(rhs, KMAX);
+    DEV2HOST_PART(forcing, KMAX);
 }

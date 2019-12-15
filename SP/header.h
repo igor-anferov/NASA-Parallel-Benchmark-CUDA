@@ -59,7 +59,7 @@ extern __thread int *dev_grid_points/*[3]*/;
 extern int nx2, ny2, nz2;
 extern logical timeron;
 
-#ifdef NEED_CUDA
+#ifdef __NVCC__
 extern __thread dim3 blockDim_;
 extern __thread dim3 gridDim_;
 
@@ -72,7 +72,23 @@ extern __thread dim3 gridDimXY;
 extern __thread dim3 blockDimXZ;
 extern __thread dim3 gridDimXZ;
 
+extern __thread dim3 gridElems;
 extern __thread dim3 gridOffset;
+#elif defined __cplusplus
+extern thread_local dim3 blockDim_;
+extern thread_local dim3 gridDim_;
+
+extern thread_local dim3 blockDimYZ;
+extern thread_local dim3 gridDimYZ;
+
+extern thread_local dim3 blockDimXY;
+extern thread_local dim3 gridDimXY;
+
+extern thread_local dim3 blockDimXZ;
+extern thread_local dim3 gridDimXZ;
+
+extern thread_local dim3 gridElems;
+extern thread_local dim3 gridOffset;
 #endif
 
 #ifdef __NVCC__
