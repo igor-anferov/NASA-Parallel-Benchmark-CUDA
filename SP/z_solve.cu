@@ -31,7 +31,6 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#include <assert.h>
 #include "header.h"
 
 __device__ void lhsinitj_kernel_z(
@@ -347,7 +346,6 @@ void z_solve() {
   z_solve_kernel <<< gridDimXY, blockDimXY >>> (
     nx2, ny2, nz2, dttz1, dttz2, comz1, comz4, comz5, comz6, c2dttz1, device_grid_points, device_ws, device_rho_i, device_speed, device_rhs
   );
-  assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_zsolve);
 
   tzetar();

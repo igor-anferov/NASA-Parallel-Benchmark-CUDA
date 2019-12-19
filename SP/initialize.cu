@@ -223,7 +223,7 @@ __global__ void initialize_kernel(
 void initialize()
 {
     initialize_kernel <<< gridDim_, blockDim_ >>> (device_grid_points, device_u, dnxm1, dnym1, dnzm1);
-    assert(cudaSuccess == cudaDeviceSynchronize());
+//    assert(cudaSuccess == cudaDeviceSynchronize());
 }
 
 void lhsinit(int ni, int nj)

@@ -31,7 +31,6 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#include <assert.h>
 #include "header.h"
 
 __device__ void lhsinit_kernel(
@@ -343,7 +342,6 @@ void x_solve() {
   x_solve_kernel <<< gridDimYZ, blockDimYZ >>> (
     nx2, ny2, nz2, dttx1, dttx2, comz1, comz4, comz5, comz6, c2dttx1, device_grid_points, device_us, device_rho_i, device_speed, device_rhs
   );
-  assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_xsolve);
 
   ninvr();

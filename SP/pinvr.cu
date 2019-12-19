@@ -31,7 +31,7 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#include <assert.h>
+//#include <assert.h>
 #include "header.h"
 
 //---------------------------------------------------------------------
@@ -74,6 +74,6 @@ void pinvr()
   pinvr_kernel <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, device_rhs
   );
-  assert(cudaSuccess == cudaDeviceSynchronize());
+//  assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_pinvr);
 }

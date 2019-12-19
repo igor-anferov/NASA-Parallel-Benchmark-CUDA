@@ -31,7 +31,7 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-#include <assert.h>
+//#include <assert.h>
 #include "header.h"
 
 //---------------------------------------------------------------------
@@ -94,7 +94,7 @@ void tzetar()
   tzetar_kernel <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_speed, device_rhs
   );
-  assert(cudaSuccess == cudaDeviceSynchronize());
+//  assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_tzetar);
 }
 

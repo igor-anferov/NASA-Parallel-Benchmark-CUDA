@@ -130,32 +130,22 @@ void device_mem_free()
 
 void host_to_device_memcpy()
 {
-    assert(cudaSuccess == cudaMemcpy(device_grid_points, grid_points, 3*sizeof(*grid_points), cudaMemcpyHostToDevice));
-
-    assert(cudaSuccess == cudaMemcpy(device_u, u, KMAX*sizeof(*u), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_us, us, KMAX*sizeof(*us), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_vs, vs, KMAX*sizeof(*vs), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_ws, ws, KMAX*sizeof(*ws), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_qs, qs, KMAX*sizeof(*qs), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_rho_i, rho_i, KMAX*sizeof(*rho_i), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_speed, speed, KMAX*sizeof(*speed), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_square, square, KMAX*sizeof(*square), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_rhs, rhs, KMAX*sizeof(*rhs), cudaMemcpyHostToDevice));
-    assert(cudaSuccess == cudaMemcpy(device_forcing, forcing, KMAX*sizeof(*forcing), cudaMemcpyHostToDevice));
+    cudaStream_t stream1, stream2;
+    cudaStreamCreate(&stream1);
+    cudaStreamCreate(&stream2);
+    assert(cudaSuccess == cudaMemcpyAsync(device_grid_points, grid_points, 3*sizeof(*grid_points), cudaMemcpyHostToDevice, stream1));
+    assert(cudaSuccess == cudaMemcpyAsync(device_forcing, forcing, KMAX*sizeof(*forcing), cudaMemcpyHostToDevice, stream2));
+    cudaStreamDestroy(stream1);
+    cudaStreamDestroy(stream2);
 }
 
 void device_to_host_memcpy()
 {
-    assert(cudaSuccess == cudaMemcpy(grid_points, device_grid_points, 3*sizeof(*grid_points), cudaMemcpyDeviceToHost));
-
-    assert(cudaSuccess == cudaMemcpy(u, device_u, KMAX*sizeof(*u), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(us, device_us, KMAX*sizeof(*us), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(vs, device_vs, KMAX*sizeof(*vs), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(ws, device_ws, KMAX*sizeof(*ws), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(qs, device_qs, KMAX*sizeof(*qs), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(rho_i, device_rho_i, KMAX*sizeof(*rho_i), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(speed, device_speed, KMAX*sizeof(*speed), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(square, device_square, KMAX*sizeof(*square), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(rhs, device_rhs, KMAX*sizeof(*rhs), cudaMemcpyDeviceToHost));
-    assert(cudaSuccess == cudaMemcpy(forcing, device_forcing, KMAX*sizeof(*forcing), cudaMemcpyDeviceToHost));
+    cudaStream_t stream1, stream2;
+    cudaStreamCreate(&stream1);
+    cudaStreamCreate(&stream2);
+    assert(cudaSuccess == cudaMemcpyAsync(u, device_u, KMAX*sizeof(*u), cudaMemcpyDeviceToHost, stream1));
+    assert(cudaSuccess == cudaMemcpyAsync(rhs, device_rhs, KMAX*sizeof(*rhs), cudaMemcpyDeviceToHost, stream2));
+    cudaStreamDestroy(stream1);
+    cudaStreamDestroy(stream2);
 }

@@ -32,7 +32,7 @@
 //-------------------------------------------------------------------------//
 
 #include <math.h>
-#include <assert.h>
+//#include <assert.h>
 #include "header.h"
 
 __global__ void rhs_start_kernel(
@@ -461,11 +461,16 @@ void compute_rhs()
     device_grid_points, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_speed, device_square, device_rhs, device_forcing 
   );
 
+  cudaStream_t stream1, stream2, stream3;
+  cudaStreamCreate(&stream1);
+  cudaStreamCreate(&stream2);
+  cudaStreamCreate(&stream3);
+
   //---------------------------------------------------------------------
   // compute xi-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsx);
-  rhs_xi_kernel <<< gridDim_, blockDim_ >>> (
+  rhs_xi_kernel <<< gridDim_, blockDim_, 0, 0 >>> (
     nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_square, device_rhs, dx1tx1, dx2tx1, dx3tx1, dx4tx1, dx5tx1, tx2, xxcon2, xxcon3, xxcon4, xxcon5
   );
   if (timeron) timer_stop(t_rhsx);
@@ -474,7 +479,7 @@ void compute_rhs()
   // compute eta-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsy);
-  rhs_eta_kernel <<< gridDim_, blockDim_ >>> (
+  rhs_eta_kernel <<< gridDim_, blockDim_, 0, 0 >>> (
     nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_square, device_rhs, dy1ty1, dy2ty1, dy3ty1, dy4ty1, dy5ty1, ty2, yycon2, yycon3, yycon4, yycon5
   );
   if (timeron) timer_stop(t_rhsy);
@@ -483,15 +488,18 @@ void compute_rhs()
   // compute zeta-direction fluxes 
   //---------------------------------------------------------------------
   if (timeron) timer_start(t_rhsz);
-  rhs_zeta_kernel <<< gridDim_, blockDim_ >>> (
+  rhs_zeta_kernel <<< gridDim_, blockDim_, 0, 0 >>> (
     nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_square, device_rhs, dz1tz1, dz2tz1, dz3tz1, dz4tz1, dz5tz1, tz2, zzcon2, zzcon3, zzcon4, zzcon5
   );
   if (timeron) timer_stop(t_rhsz);
+  cudaStreamDestroy(stream1);
+  cudaStreamDestroy(stream2);
+  cudaStreamDestroy(stream3);
 
   rhs_end_kernel <<< gridDim_, blockDim_ >>> (
     nx2, ny2, nz2, device_u, device_us, device_vs, device_ws, device_qs, device_rho_i, device_square, device_rhs, dt
   );
 
-  assert(cudaSuccess == cudaDeviceSynchronize());
+//  assert(cudaSuccess == cudaDeviceSynchronize());
   if (timeron) timer_stop(t_rhs);
 }

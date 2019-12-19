@@ -21,7 +21,7 @@ void init_()
 
 void init_grid_()
 {
-    blockDim_ = blockDimYZ = blockDimXY = blockDimXZ = dim3(8, 8, 8);
+    blockDim_ = blockDimYZ = blockDimXY = blockDimXZ = dim3(16, 8, 4);
     gridDim_ = gridDimYZ = gridDimXY = gridDimXZ = dim3(
         (grid_points[0] - 1) / blockDim_.x + 1,
         (grid_points[1] - 1) / blockDim_.y + 1,
