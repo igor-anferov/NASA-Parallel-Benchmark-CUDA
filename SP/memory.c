@@ -84,17 +84,22 @@ void mem_free()
     lhsm = NULL;
 }
 
-__thread int *device_grid_points;
-__thread double (*device_u)[KMAX][JMAXP+1][IMAXP+1];
-__thread double (*device_us)[JMAXP+1][IMAXP+1];
-__thread double (*device_vs)[JMAXP+1][IMAXP+1];
-__thread double (*device_ws)[JMAXP+1][IMAXP+1];
-__thread double (*device_qs)[JMAXP+1][IMAXP+1];
-__thread double (*device_rho_i)[JMAXP+1][IMAXP+1];
-__thread double (*device_speed)[JMAXP+1][IMAXP+1];
-__thread double (*device_square)[JMAXP+1][IMAXP+1];
-__thread double (*device_rhs)[KMAX][JMAXP+1][IMAXP+1];
-__thread double (*device_forcing)[KMAX][JMAXP+1][IMAXP+1];
+int *device_grid_points;
+double (*device_u)[KMAX][JMAXP+1][IMAXP+1];
+double (*device_us)[JMAXP+1][IMAXP+1];
+double (*device_vs)[JMAXP+1][IMAXP+1];
+double (*device_ws)[JMAXP+1][IMAXP+1];
+double (*device_qs)[JMAXP+1][IMAXP+1];
+double (*device_rho_i)[JMAXP+1][IMAXP+1];
+double (*device_speed)[JMAXP+1][IMAXP+1];
+double (*device_square)[JMAXP+1][IMAXP+1];
+double (*device_rhs)[KMAX][JMAXP+1][IMAXP+1];
+double (*device_forcing)[KMAX][JMAXP+1][IMAXP+1];
+
+double (*transp_rhs)[KMAX][IMAXP+1][JMAXP+1];
+double (*transp_us)[IMAXP+1][JMAXP+1];
+double (*transp_rho_i)[IMAXP+1][JMAXP+1];
+double (*transp_speed)[IMAXP+1][JMAXP+1];
 
 void device_mem_alloc()
 {
@@ -110,6 +115,11 @@ void device_mem_alloc()
     assert(cudaSuccess == cudaMalloc((void**)&(device_square), KMAX*sizeof(*device_square)));
     assert(cudaSuccess == cudaMalloc((void**)&(device_rhs), 5*sizeof(*device_rhs)));
     assert(cudaSuccess == cudaMalloc((void**)&(device_forcing), 5*sizeof(*device_forcing)));
+
+    assert(cudaSuccess == cudaMalloc((void**)&(transp_rhs), 5*sizeof(*transp_rhs)));
+    assert(cudaSuccess == cudaMalloc((void**)&(transp_us), KMAX*sizeof(*device_us)));
+    assert(cudaSuccess == cudaMalloc((void**)&(transp_rho_i), KMAX*sizeof(*device_rho_i)));
+    assert(cudaSuccess == cudaMalloc((void**)&(transp_speed), KMAX*sizeof(*device_speed)));
 }
 
 void device_mem_free()
@@ -126,6 +136,8 @@ void device_mem_free()
     assert(cudaSuccess == cudaFree(device_square));
     assert(cudaSuccess == cudaFree(device_rhs));
     assert(cudaSuccess == cudaFree(device_forcing));
+
+    assert(cudaSuccess == cudaFree(transp_rhs));
 }
 
 void host_to_device_memcpy()

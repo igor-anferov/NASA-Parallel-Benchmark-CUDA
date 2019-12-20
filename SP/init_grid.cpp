@@ -28,6 +28,11 @@ void init_grid_()
         (grid_points[2] - 1) / blockDim_.z + 1
     );
     blockDimYZ.x = gridDimYZ.x = 1;
+    blockDimYZ.y *= 8;
+    blockDimYZ.z *= 4;
+    gridDimYZ.y = (gridDimYZ.y - 1) / 8 + 1;
+    gridDimYZ.z = (gridDimYZ.z - 1) / 4 + 1;
+
     blockDimXY.z = gridDimXY.z = 1;
     blockDimXZ.y = gridDimXZ.y = 1;
 }

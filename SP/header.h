@@ -49,7 +49,7 @@ extern "C" {
 #endif
 
 extern int *grid_points;
-extern __thread int *device_grid_points;
+extern int *device_grid_points;
 extern int nx2, ny2, nz2;
 extern logical timeron;
 
@@ -147,16 +147,21 @@ extern double (*square )[JMAXP+1][IMAXP+1];
 extern double (*rhs    )[KMAX][JMAXP+1][IMAXP+1];
 extern double (*forcing)[KMAX][JMAXP+1][IMAXP+1];
 
-extern __thread double (*device_u      )[KMAX][JMAXP+1][IMAXP+1];
-extern __thread double (*device_us     )[JMAXP+1][IMAXP+1];
-extern __thread double (*device_vs     )[JMAXP+1][IMAXP+1];
-extern __thread double (*device_ws     )[JMAXP+1][IMAXP+1];
-extern __thread double (*device_qs     )[JMAXP+1][IMAXP+1];
-extern __thread double (*device_rho_i  )[JMAXP+1][IMAXP+1];
-extern __thread double (*device_speed  )[JMAXP+1][IMAXP+1];
-extern __thread double (*device_square )[JMAXP+1][IMAXP+1];
-extern __thread double (*device_rhs    )[KMAX][JMAXP+1][IMAXP+1];
-extern __thread double (*device_forcing)[KMAX][JMAXP+1][IMAXP+1];
+extern double (*device_u      )[KMAX][JMAXP+1][IMAXP+1];
+extern double (*device_us     )[JMAXP+1][IMAXP+1];
+extern double (*device_vs     )[JMAXP+1][IMAXP+1];
+extern double (*device_ws     )[JMAXP+1][IMAXP+1];
+extern double (*device_qs     )[JMAXP+1][IMAXP+1];
+extern double (*device_rho_i  )[JMAXP+1][IMAXP+1];
+extern double (*device_speed  )[JMAXP+1][IMAXP+1];
+extern double (*device_square )[JMAXP+1][IMAXP+1];
+extern double (*device_rhs    )[KMAX][JMAXP+1][IMAXP+1];
+extern double (*device_forcing)[KMAX][JMAXP+1][IMAXP+1];
+
+extern double (*transp_rhs    )[KMAX][IMAXP+1][JMAXP+1];
+extern double (*transp_us     )[IMAXP+1][JMAXP+1];
+extern double (*transp_rho_i  )[IMAXP+1][JMAXP+1];
+extern double (*transp_speed  )[IMAXP+1][JMAXP+1];
 
 extern double (*cv  );
 extern double (*rhon);
