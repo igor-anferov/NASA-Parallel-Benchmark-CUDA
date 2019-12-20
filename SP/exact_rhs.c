@@ -48,7 +48,7 @@ void exact_rhs()
     for (j = 0; j <= grid_points[1]-1; j++) {
       for (i = 0; i <= grid_points[0]-1; i++) {
         for (m = 0; m < 5; m++) {
-          forcing[k][j][i][m] = 0.0;
+          forcing[m][k][j][i] = 0.0;
         }
       }
     }
@@ -86,27 +86,27 @@ void exact_rhs()
         im1 = i-1;
         ip1 = i+1;
 
-        forcing[k][j][i][0] = forcing[k][j][i][0] -
+        forcing[0][k][j][i] = forcing[0][k][j][i] -
           tx2*( ue[ip1][1]-ue[im1][1] )+
           dx1tx1*(ue[ip1][0]-2.0*ue[i][0]+ue[im1][0]);
 
-        forcing[k][j][i][1] = forcing[k][j][i][1] - tx2 * (
+        forcing[1][k][j][i] = forcing[1][k][j][i] - tx2 * (
             (ue[ip1][1]*buf[ip1][1]+c2*(ue[ip1][4]-q[ip1]))-
             (ue[im1][1]*buf[im1][1]+c2*(ue[im1][4]-q[im1])))+
           xxcon1*(buf[ip1][1]-2.0*buf[i][1]+buf[im1][1])+
           dx2tx1*( ue[ip1][1]-2.0* ue[i][1]+ue[im1][1]);
 
-        forcing[k][j][i][2] = forcing[k][j][i][2] - tx2 * (
+        forcing[2][k][j][i] = forcing[2][k][j][i] - tx2 * (
             ue[ip1][2]*buf[ip1][1]-ue[im1][2]*buf[im1][1])+
           xxcon2*(buf[ip1][2]-2.0*buf[i][2]+buf[im1][2])+
           dx3tx1*( ue[ip1][2]-2.0*ue[i][2] +ue[im1][2]);
 
-        forcing[k][j][i][3] = forcing[k][j][i][3] - tx2*(
+        forcing[3][k][j][i] = forcing[3][k][j][i] - tx2*(
             ue[ip1][3]*buf[ip1][1]-ue[im1][3]*buf[im1][1])+
           xxcon2*(buf[ip1][3]-2.0*buf[i][3]+buf[im1][3])+
           dx4tx1*( ue[ip1][3]-2.0* ue[i][3]+ ue[im1][3]);
 
-        forcing[k][j][i][4] = forcing[k][j][i][4] - tx2*(
+        forcing[4][k][j][i] = forcing[4][k][j][i] - tx2*(
             buf[ip1][1]*(c1*ue[ip1][4]-c2*q[ip1])-
             buf[im1][1]*(c1*ue[im1][4]-c2*q[im1]))+
           0.5*xxcon3*(buf[ip1][0]-2.0*buf[i][0]+buf[im1][0])+
@@ -120,17 +120,17 @@ void exact_rhs()
       //---------------------------------------------------------------------
       for (m = 0; m < 5; m++) {
         i = 1;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (5.0*ue[i][m] - 4.0*ue[i+1][m] +ue[i+2][m]);
         i = 2;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (-4.0*ue[i-1][m] + 6.0*ue[i][m] -
             4.0*ue[i+1][m] +     ue[i+2][m]);
       }
 
       for (i = 3; i <= grid_points[0]-4; i++) {
         for (m = 0; m < 5; m++) {
-          forcing[k][j][i][m] = forcing[k][j][i][m] - dssp*
+          forcing[m][k][j][i] = forcing[m][k][j][i] - dssp*
             (ue[i-2][m] - 4.0*ue[i-1][m] +
              6.0*ue[i][m] - 4.0*ue[i+1][m] + ue[i+2][m]);
         }
@@ -138,11 +138,11 @@ void exact_rhs()
 
       for (m = 0; m < 5; m++) {
         i = grid_points[0]-3;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (ue[i-2][m] - 4.0*ue[i-1][m] +
            6.0*ue[i][m] - 4.0*ue[i+1][m]);
         i = grid_points[0]-2;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (ue[i-2][m] - 4.0*ue[i-1][m] + 5.0*ue[i][m]);
       }
     }
@@ -179,27 +179,27 @@ void exact_rhs()
         jm1 = j-1;
         jp1 = j+1;
 
-        forcing[k][j][i][0] = forcing[k][j][i][0] -
+        forcing[0][k][j][i] = forcing[0][k][j][i] -
           ty2*( ue[jp1][2]-ue[jm1][2] )+
           dy1ty1*(ue[jp1][0]-2.0*ue[j][0]+ue[jm1][0]);
 
-        forcing[k][j][i][1] = forcing[k][j][i][1] - ty2*(
+        forcing[1][k][j][i] = forcing[1][k][j][i] - ty2*(
             ue[jp1][1]*buf[jp1][2]-ue[jm1][1]*buf[jm1][2])+
           yycon2*(buf[jp1][1]-2.0*buf[j][1]+buf[jm1][1])+
           dy2ty1*( ue[jp1][1]-2.0* ue[j][1]+ ue[jm1][1]);
 
-        forcing[k][j][i][2] = forcing[k][j][i][2] - ty2*(
+        forcing[2][k][j][i] = forcing[2][k][j][i] - ty2*(
             (ue[jp1][2]*buf[jp1][2]+c2*(ue[jp1][4]-q[jp1]))-
             (ue[jm1][2]*buf[jm1][2]+c2*(ue[jm1][4]-q[jm1])))+
           yycon1*(buf[jp1][2]-2.0*buf[j][2]+buf[jm1][2])+
           dy3ty1*( ue[jp1][2]-2.0*ue[j][2] +ue[jm1][2]);
 
-        forcing[k][j][i][3] = forcing[k][j][i][3] - ty2*(
+        forcing[3][k][j][i] = forcing[3][k][j][i] - ty2*(
             ue[jp1][3]*buf[jp1][2]-ue[jm1][3]*buf[jm1][2])+
           yycon2*(buf[jp1][3]-2.0*buf[j][3]+buf[jm1][3])+
           dy4ty1*( ue[jp1][3]-2.0*ue[j][3]+ ue[jm1][3]);
 
-        forcing[k][j][i][4] = forcing[k][j][i][4] - ty2*(
+        forcing[4][k][j][i] = forcing[4][k][j][i] - ty2*(
             buf[jp1][2]*(c1*ue[jp1][4]-c2*q[jp1])-
             buf[jm1][2]*(c1*ue[jm1][4]-c2*q[jm1]))+
           0.5*yycon3*(buf[jp1][0]-2.0*buf[j][0]+
@@ -214,17 +214,17 @@ void exact_rhs()
       //---------------------------------------------------------------------
       for (m = 0; m < 5; m++) {
         j = 1;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (5.0*ue[j][m] - 4.0*ue[j+1][m] +ue[j+2][m]);
         j = 2;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (-4.0*ue[j-1][m] + 6.0*ue[j][m] -
             4.0*ue[j+1][m] +     ue[j+2][m]);
       }
 
       for (j = 3; j <= grid_points[1]-4; j++) {
         for (m = 0; m < 5; m++) {
-          forcing[k][j][i][m] = forcing[k][j][i][m] - dssp*
+          forcing[m][k][j][i] = forcing[m][k][j][i] - dssp*
             (ue[j-2][m] - 4.0*ue[j-1][m] +
              6.0*ue[j][m] - 4.0*ue[j+1][m] + ue[j+2][m]);
         }
@@ -232,11 +232,11 @@ void exact_rhs()
 
       for (m = 0; m < 5; m++) {
         j = grid_points[1]-3;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (ue[j-2][m] - 4.0*ue[j-1][m] +
            6.0*ue[j][m] - 4.0*ue[j+1][m]);
         j = grid_points[1]-2;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (ue[j-2][m] - 4.0*ue[j-1][m] + 5.0*ue[j][m]);
       }
     }
@@ -274,27 +274,27 @@ void exact_rhs()
         km1 = k-1;
         kp1 = k+1;
 
-        forcing[k][j][i][0] = forcing[k][j][i][0] -
+        forcing[0][k][j][i] = forcing[0][k][j][i] -
           tz2*( ue[kp1][3]-ue[km1][3] )+
           dz1tz1*(ue[kp1][0]-2.0*ue[k][0]+ue[km1][0]);
 
-        forcing[k][j][i][1] = forcing[k][j][i][1] - tz2 * (
+        forcing[1][k][j][i] = forcing[1][k][j][i] - tz2 * (
             ue[kp1][1]*buf[kp1][3]-ue[km1][1]*buf[km1][3])+
           zzcon2*(buf[kp1][1]-2.0*buf[k][1]+buf[km1][1])+
           dz2tz1*( ue[kp1][1]-2.0* ue[k][1]+ ue[km1][1]);
 
-        forcing[k][j][i][2] = forcing[k][j][i][2] - tz2 * (
+        forcing[2][k][j][i] = forcing[2][k][j][i] - tz2 * (
             ue[kp1][2]*buf[kp1][3]-ue[km1][2]*buf[km1][3])+
           zzcon2*(buf[kp1][2]-2.0*buf[k][2]+buf[km1][2])+
           dz3tz1*(ue[kp1][2]-2.0*ue[k][2]+ue[km1][2]);
 
-        forcing[k][j][i][3] = forcing[k][j][i][3] - tz2 * (
+        forcing[3][k][j][i] = forcing[3][k][j][i] - tz2 * (
             (ue[kp1][3]*buf[kp1][3]+c2*(ue[kp1][4]-q[kp1]))-
             (ue[km1][3]*buf[km1][3]+c2*(ue[km1][4]-q[km1])))+
           zzcon1*(buf[kp1][3]-2.0*buf[k][3]+buf[km1][3])+
           dz4tz1*( ue[kp1][3]-2.0*ue[k][3] +ue[km1][3]);
 
-        forcing[k][j][i][4] = forcing[k][j][i][4] - tz2 * (
+        forcing[4][k][j][i] = forcing[4][k][j][i] - tz2 * (
             buf[kp1][3]*(c1*ue[kp1][4]-c2*q[kp1])-
             buf[km1][3]*(c1*ue[km1][4]-c2*q[km1]))+
           0.5*zzcon3*(buf[kp1][0]-2.0*buf[k][0]+buf[km1][0])+
@@ -308,17 +308,17 @@ void exact_rhs()
       //---------------------------------------------------------------------
       for (m = 0; m < 5; m++) {
         k = 1;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (5.0*ue[k][m] - 4.0*ue[k+1][m] +ue[k+2][m]);
         k = 2;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (-4.0*ue[k-1][m] + 6.0*ue[k][m] -
             4.0*ue[k+1][m] +     ue[k+2][m]);
       }
 
       for (k = 3; k <= grid_points[2]-4; k++) {
         for (m = 0; m < 5; m++) {
-          forcing[k][j][i][m] = forcing[k][j][i][m] - dssp*
+          forcing[m][k][j][i] = forcing[m][k][j][i] - dssp*
             (ue[k-2][m] - 4.0*ue[k-1][m] +
              6.0*ue[k][m] - 4.0*ue[k+1][m] + ue[k+2][m]);
         }
@@ -326,11 +326,11 @@ void exact_rhs()
 
       for (m = 0; m < 5; m++) {
         k = grid_points[2]-3;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (ue[k-2][m] - 4.0*ue[k-1][m] +
            6.0*ue[k][m] - 4.0*ue[k+1][m]);
         k = grid_points[2]-2;
-        forcing[k][j][i][m] = forcing[k][j][i][m] - dssp *
+        forcing[m][k][j][i] = forcing[m][k][j][i] - dssp *
           (ue[k-2][m] - 4.0*ue[k-1][m] + 5.0*ue[k][m]);
       }
 
@@ -344,7 +344,7 @@ void exact_rhs()
     for (j = 1; j <= grid_points[1]-2; j++) {
       for (i = 1; i <= grid_points[0]-2; i++) {
         for (m = 0; m < 5; m++) {
-          forcing[k][j][i][m] = -1.0 * forcing[k][j][i][m];
+          forcing[m][k][j][i] = -1.0 * forcing[m][k][j][i];
         }
       }
     }

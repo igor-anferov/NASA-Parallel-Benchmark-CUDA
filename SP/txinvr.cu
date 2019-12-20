@@ -31,7 +31,6 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-//#include <assert.h>
 #include "header.h"
 
 //---------------------------------------------------------------------
@@ -45,7 +44,7 @@ __global__ void txinvr_kernel(
     double (*qs)[JMAXP+1][IMAXP+1],
     double (*rho_i)[JMAXP+1][IMAXP+1],
     double (*speed)[JMAXP+1][IMAXP+1],
-    double (*rhs)[JMAXP+1][IMAXP+1][5]
+    double (*rhs)[KMAX][JMAXP+1][IMAXP+1]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -63,21 +62,21 @@ __global__ void txinvr_kernel(
         ac = speed[k][j][i];
         ac2inv = ac*ac;
 
-        r1 = rhs[k][j][i][0];
-        r2 = rhs[k][j][i][1];
-        r3 = rhs[k][j][i][2];
-        r4 = rhs[k][j][i][3];
-        r5 = rhs[k][j][i][4];
+        r1 = rhs[0][k][j][i];
+        r2 = rhs[1][k][j][i];
+        r3 = rhs[2][k][j][i];
+        r4 = rhs[3][k][j][i];
+        r5 = rhs[4][k][j][i];
 
         t1 = c2 / ac2inv * ( qs[k][j][i]*r1 - uu*r2  - vv*r3 - ww*r4 + r5 );
         t2 = bt * ru1 * ( uu * r1 - r2 );
         t3 = ( bt * ru1 * ac ) * t1;
 
-        rhs[k][j][i][0] = r1 - t1;
-        rhs[k][j][i][1] = - ru1 * ( ww*r1 - r4 );
-        rhs[k][j][i][2] =   ru1 * ( vv*r1 - r3 );
-        rhs[k][j][i][3] = - t2 + t3;
-        rhs[k][j][i][4] =   t2 + t3;
+        rhs[0][k][j][i] = r1 - t1;
+        rhs[1][k][j][i] = - ru1 * ( ww*r1 - r4 );
+        rhs[2][k][j][i] =   ru1 * ( vv*r1 - r3 );
+        rhs[3][k][j][i] = - t2 + t3;
+        rhs[4][k][j][i] =   t2 + t3;
       }
     }
   }

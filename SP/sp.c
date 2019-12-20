@@ -56,7 +56,7 @@ double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt,
        c2dtty1, c2dttz1, comz1, comz4, comz5, comz6, 
        c3c4tx3, c3c4ty3, c3c4tz3;
 
-double (*u)[JMAXP+1][IMAXP+1][5];
+double (*u)[KMAX][JMAXP+1][IMAXP+1];
 double (*us)[JMAXP+1][IMAXP+1];
 double (*vs)[JMAXP+1][IMAXP+1];
 double (*ws)[JMAXP+1][IMAXP+1];
@@ -64,8 +64,8 @@ double (*qs)[JMAXP+1][IMAXP+1];
 double (*rho_i)[JMAXP+1][IMAXP+1];
 double (*speed)[JMAXP+1][IMAXP+1];
 double (*square)[JMAXP+1][IMAXP+1];
-double (*rhs)[JMAXP+1][IMAXP+1][5];
-double (*forcing)[JMAXP+1][IMAXP+1][5];
+double (*rhs)[KMAX][JMAXP+1][IMAXP+1];
+double (*forcing)[KMAX][JMAXP+1][IMAXP+1];
 
 double (*cv);
 double (*rhon);

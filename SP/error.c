@@ -56,7 +56,7 @@ void error_norm(double rms[5])
         exact_solution(xi, eta, zeta, u_exact);
 
         for (m = 0; m < 5; m++) {
-          add = u[k][j][i][m]-u_exact[m];
+          add = u[m][k][j][i]-u_exact[m];
           rms[m] = rms[m] + add*add;
         }
       }
@@ -85,7 +85,7 @@ void rhs_norm(double rms[5])
     for (j = 1; j <= ny2; j++) {
       for (i = 1; i <= nx2; i++) {
         for (m = 0; m < 5; m++) {
-          add = rhs[k][j][i][m];
+          add = rhs[m][k][j][i];
           rms[m] = rms[m] + add*add;
         } 
       } 

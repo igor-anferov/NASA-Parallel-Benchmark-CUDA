@@ -31,7 +31,6 @@
 //          and Jaejin Lee                                                 //
 //-------------------------------------------------------------------------//
 
-//#include <assert.h>
 #include "header.h"
 
 //---------------------------------------------------------------------
@@ -39,8 +38,8 @@
 //---------------------------------------------------------------------
 __global__ void add_kernel(
     int nx2, int ny2, int nz2,
-    double (*u)[JMAXP+1][IMAXP+1][5],
-    double (*rhs)[JMAXP+1][IMAXP+1][5]
+    double (*u)[KMAX][JMAXP+1][IMAXP+1],
+    double (*rhs)[KMAX][JMAXP+1][IMAXP+1]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y;
@@ -51,7 +50,7 @@ __global__ void add_kernel(
     if (j >= 1 && j <= ny2) {
       if (i >= 1 && i <= nx2) {
         for (m = 0; m < 5; m++) {
-          u[k][j][i][m] = u[k][j][i][m] + rhs[k][j][i][m];
+          u[m][k][j][i] = u[m][k][j][i] + rhs[m][k][j][i];
         }
       }
     }

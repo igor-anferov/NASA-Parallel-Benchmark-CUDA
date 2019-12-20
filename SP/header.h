@@ -136,7 +136,7 @@ extern double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt,
 #define IMAXP   (IMAX/2*2)
 #define JMAXP   (JMAX/2*2)
 
-extern double (*u      )[JMAXP+1][IMAXP+1][5];
+extern double (*u      )[KMAX][JMAXP+1][IMAXP+1];
 extern double (*us     )[JMAXP+1][IMAXP+1];
 extern double (*vs     )[JMAXP+1][IMAXP+1];
 extern double (*ws     )[JMAXP+1][IMAXP+1];
@@ -144,10 +144,10 @@ extern double (*qs     )[JMAXP+1][IMAXP+1];
 extern double (*rho_i  )[JMAXP+1][IMAXP+1];
 extern double (*speed  )[JMAXP+1][IMAXP+1];
 extern double (*square )[JMAXP+1][IMAXP+1];
-extern double (*rhs    )[JMAXP+1][IMAXP+1][5];
-extern double (*forcing)[JMAXP+1][IMAXP+1][5];
+extern double (*rhs    )[KMAX][JMAXP+1][IMAXP+1];
+extern double (*forcing)[KMAX][JMAXP+1][IMAXP+1];
 
-extern __thread double (*device_u      )[JMAXP+1][IMAXP+1][5];
+extern __thread double (*device_u      )[KMAX][JMAXP+1][IMAXP+1];
 extern __thread double (*device_us     )[JMAXP+1][IMAXP+1];
 extern __thread double (*device_vs     )[JMAXP+1][IMAXP+1];
 extern __thread double (*device_ws     )[JMAXP+1][IMAXP+1];
@@ -155,8 +155,8 @@ extern __thread double (*device_qs     )[JMAXP+1][IMAXP+1];
 extern __thread double (*device_rho_i  )[JMAXP+1][IMAXP+1];
 extern __thread double (*device_speed  )[JMAXP+1][IMAXP+1];
 extern __thread double (*device_square )[JMAXP+1][IMAXP+1];
-extern __thread double (*device_rhs    )[JMAXP+1][IMAXP+1][5];
-extern __thread double (*device_forcing)[JMAXP+1][IMAXP+1][5];
+extern __thread double (*device_rhs    )[KMAX][JMAXP+1][IMAXP+1];
+extern __thread double (*device_forcing)[KMAX][JMAXP+1][IMAXP+1];
 
 extern double (*cv  );
 extern double (*rhon);
