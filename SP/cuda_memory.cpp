@@ -28,21 +28,17 @@ double (**dev_forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
         free(ptr); \
 }
 #define MEMCPY(src, dst, size, kind) CHK_CUDA_OK(cudaMemcpy(dst, src, (size)*sizeof(*(src)), kind))
+#define MEMCPY_P2P(src, si, dst, di, size) CHK_CUDA_OK(cudaMemcpyPeer(dst, di, src, si, (size)*sizeof(*(src))))
 #define HOST2DEV_FROM(ptr, offset, size) MEMCPY(ptr + offset, dev_ ## ptr[device] + offset, size, cudaMemcpyHostToDevice)
 #define HOST2DEV(ptr, size) HOST2DEV_FROM(ptr, 0, size)
 #define DEV2HOST(ptr, offset, size) MEMCPY(dev_ ## ptr[device] + offset, ptr + offset, size, cudaMemcpyDeviceToHost)
+#define DEV2DEV(ptr, si, di, offset, size) MEMCPY_P2P(dev_ ## ptr[si] + offset, si, dev_ ## ptr[di] + offset, di, size)
 #define DEV2HOST_PART(ptr, size) DEV2HOST(ptr, gridOffset.z, gridElems.z)
-#define DEV2HOST_HALO(ptr, size) { \
+#define UPDATE_HALO(ptr, size) { \
     if (device > 0) \
-        DEV2HOST(ptr, gridOffset.z, size); \
+        DEV2DEV(ptr, device, device - 1, gridOffset.z, size); \
     if (device < device_count - 1) \
-        DEV2HOST(ptr, gridOffset.z + gridElems.z - size, size); \
-}
-#define HOST2DEV_HALO(ptr, size) { \
-    if (device > 0) \
-        HOST2DEV_FROM(ptr, gridOffset.z - size, size); \
-    if (device < device_count - 1) \
-        HOST2DEV_FROM(ptr, gridOffset.z + gridElems.z, size); \
+        DEV2DEV(ptr, device, device + 1, gridOffset.z + gridElems.z - size, size); \
 }
 
 void allocate_device()
@@ -59,6 +55,7 @@ void allocate_device()
     ALLOCATE(dev_square, KMAX);
     ALLOCATE(dev_rhs, KMAX);
     ALLOCATE(dev_forcing, KMAX);
+#pragma omp barrier
 }
 
 void deallocate_device()
@@ -109,21 +106,14 @@ void cuda_sync_rhs()
     if (timeron) {
         timer_start(t_comm);
     }
-    DEV2HOST_HALO(u, 2);
-    DEV2HOST_HALO(us, 1);
-    DEV2HOST_HALO(vs, 1);
-    DEV2HOST_HALO(ws, 1);
-    DEV2HOST_HALO(qs, 1);
-    DEV2HOST_HALO(rho_i, 1);
-    DEV2HOST_HALO(square, 1);
+    UPDATE_HALO(u, 2);
+    UPDATE_HALO(us, 1);
+    UPDATE_HALO(vs, 1);
+    UPDATE_HALO(ws, 1);
+    UPDATE_HALO(qs, 1);
+    UPDATE_HALO(rho_i, 1);
+    UPDATE_HALO(square, 1);
 #pragma omp barrier
-    HOST2DEV_HALO(u, 2);
-    HOST2DEV_HALO(us, 1);
-    HOST2DEV_HALO(vs, 1);
-    HOST2DEV_HALO(ws, 1);
-    HOST2DEV_HALO(qs, 1);
-    HOST2DEV_HALO(rho_i, 1);
-    HOST2DEV_HALO(square, 1);
     if (timeron) {
         timer_stop(t_comm);
     }
