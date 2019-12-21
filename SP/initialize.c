@@ -53,11 +53,11 @@ void initialize()
   for (k = 0; k <= grid_points[2]-1; k++) {
     for (j = 0; j <= grid_points[1]-1; j++) {
       for (i = 0; i <= grid_points[0]-1; i++) {
-        u[k][j][i][0] = 1.0;
-        u[k][j][i][1] = 0.0;
-        u[k][j][i][2] = 0.0;
-        u[k][j][i][3] = 0.0;
-        u[k][j][i][4] = 1.0;
+        u[k][0][j][i] = 1.0;
+        u[k][1][j][i] = 0.0;
+        u[k][2][j][i] = 0.0;
+        u[k][3][j][i] = 0.0;
+        u[k][4][j][i] = 1.0;
       }
     }
   }
@@ -92,7 +92,7 @@ void initialize()
           Peta  = eta  * Pface[1][1][m] + (1.0-eta)  * Pface[0][1][m];
           Pzeta = zeta * Pface[1][2][m] + (1.0-zeta) * Pface[0][2][m];
 
-          u[k][j][i][m] = Pxi + Peta + Pzeta - 
+          u[k][m][j][i] = Pxi + Peta + Pzeta - 
                           Pxi*Peta - Pxi*Pzeta - Peta*Pzeta + 
                           Pxi*Peta*Pzeta;
         }
@@ -116,7 +116,7 @@ void initialize()
       eta = (double)j * dnym1;
       exact_solution(xi, eta, zeta, temp);
       for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+        u[k][m][j][i] = temp[m];
       }
     }
   }
@@ -132,7 +132,7 @@ void initialize()
       eta = (double)j * dnym1;
       exact_solution(xi, eta, zeta, temp);
       for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+        u[k][m][j][i] = temp[m];
       }
     }
   }
@@ -148,7 +148,7 @@ void initialize()
       xi = (double)i * dnxm1;
       exact_solution(xi, eta, zeta, temp);
       for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+        u[k][m][j][i] = temp[m];
       }
     }
   }
@@ -164,7 +164,7 @@ void initialize()
       xi = (double)i * dnxm1;
       exact_solution(xi, eta, zeta, temp);
       for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+        u[k][m][j][i] = temp[m];
       }
     }
   }
@@ -180,7 +180,7 @@ void initialize()
       xi = (double)i * dnxm1;
       exact_solution(xi, eta, zeta, temp);
       for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+        u[k][m][j][i] = temp[m];
       }
     }
   }
@@ -196,7 +196,7 @@ void initialize()
       xi = (double)i * dnxm1;
       exact_solution(xi, eta, zeta, temp);
       for (m = 0; m < 5; m++) {
-        u[k][j][i][m] = temp[m];
+        u[k][m][j][i] = temp[m];
       }
     }
   }

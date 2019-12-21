@@ -4,7 +4,7 @@
 #include "header.h"
 
 __thread int *dev_grid_points/*[3]*/;
-__thread double (*dev_u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+__thread double (*dev_u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 __thread double (*dev_us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 __thread double (*dev_vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 __thread double (*dev_ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
@@ -12,8 +12,8 @@ __thread double (*dev_qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 __thread double (*dev_rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 __thread double (*dev_speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 __thread double (*dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-__thread double (*dev_rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
-__thread double (*dev_forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+__thread double (*dev_rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+__thread double (*dev_forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 
 #define ALLOCATE(ptr, size) CHK_CUDA_OK(cudaMalloc((void**)&(ptr), (size)*sizeof(*(ptr))))
 #define DEALLOCATE(ptr) CHK_CUDA_OK(cudaFree(ptr))

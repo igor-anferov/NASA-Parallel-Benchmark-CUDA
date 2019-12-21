@@ -40,8 +40,8 @@
 __global__ void add_kernel(
     dim3 gridOffset,
     int nx2, int ny2, int nz2,
-    double (*u  )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
-    double (*rhs)/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+    double (*u  )/*[KMAX]*/[5][JMAXP+1][IMAXP+1],
+    double (*rhs)/*[KMAX]*/[5][JMAXP+1][IMAXP+1]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
@@ -53,7 +53,7 @@ __global__ void add_kernel(
       if (i >= 1 && i <= nx2) {
 #pragma unroll
         for (m = 0; m < 5; m++) {
-          u[k][j][i][m] = u[k][j][i][m] + rhs[k][j][i][m];
+          u[k][m][j][i] = u[k][m][j][i] + rhs[k][m][j][i];
         }
       }
     }

@@ -40,13 +40,13 @@
 __global__ void tzetar_kernel(
     dim3 gridOffset,
     int nx2, int ny2, int nz2,
-    double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1],
     double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
     double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
     double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
     double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
     double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5]
+    double (*rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1]
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
   int j = blockDim.y * blockIdx.y + threadIdx.y + gridOffset.y;
@@ -65,24 +65,24 @@ __global__ void tzetar_kernel(
 
         ac2u = ac*ac;
 
-        r1 = rhs[k][j][i][0];
-        r2 = rhs[k][j][i][1];
-        r3 = rhs[k][j][i][2];
-        r4 = rhs[k][j][i][3];
-        r5 = rhs[k][j][i][4];     
+        r1 = rhs[k][0][j][i];
+        r2 = rhs[k][1][j][i];
+        r3 = rhs[k][2][j][i];
+        r4 = rhs[k][3][j][i];
+        r5 = rhs[k][4][j][i];     
 
-        uzik1 = u[k][j][i][0];
+        uzik1 = u[k][0][j][i];
         btuz  = bt * uzik1;
 
         t1 = btuz/ac * (r4 + r5);
         t2 = r3 + t1;
         t3 = btuz * (r4 - r5);
 
-        rhs[k][j][i][0] = t2;
-        rhs[k][j][i][1] = -uzik1*r2 + xvel*t2;
-        rhs[k][j][i][2] =  uzik1*r1 + yvel*t2;
-        rhs[k][j][i][3] =  zvel*t2  + t3;
-        rhs[k][j][i][4] =  uzik1*(-xvel*r2 + yvel*r1) + 
+        rhs[k][0][j][i] = t2;
+        rhs[k][1][j][i] = -uzik1*r2 + xvel*t2;
+        rhs[k][2][j][i] =  uzik1*r1 + yvel*t2;
+        rhs[k][3][j][i] =  zvel*t2  + t3;
+        rhs[k][4][j][i] =  uzik1*(-xvel*r2 + yvel*r1) + 
                            qs[k][j][i]*t2 + c2iv*ac2u*t1 + zvel*t3;
       }
     }

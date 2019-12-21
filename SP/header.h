@@ -189,7 +189,7 @@ extern double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt,
 // for even number sizes only
 //---------------------------------------------------------------------
 /* common /fields/ */
-extern double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern double (*u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 extern double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
@@ -197,12 +197,12 @@ extern double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
-extern double (*forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern double (*rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+extern double (*forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 
 #ifdef NEED_CUDA
 /* common /fields/ */
-extern __thread double (*dev_u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern __thread double (*dev_u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 extern __thread double (*dev_us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern __thread double (*dev_vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern __thread double (*dev_ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
@@ -210,8 +210,8 @@ extern __thread double (*dev_qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern __thread double (*dev_rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern __thread double (*dev_speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 extern __thread double (*dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern __thread double (*dev_rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
-extern __thread double (*dev_forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+extern __thread double (*dev_rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+extern __thread double (*dev_forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 #endif
 
 /* common /work_1d/ */

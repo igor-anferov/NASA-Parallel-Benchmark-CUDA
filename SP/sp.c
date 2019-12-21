@@ -59,7 +59,7 @@ double tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3, dt,
        c3c4tx3, c3c4ty3, c3c4tz3;
 
 /* common /fields/ */
-double (*u      )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+double (*u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 double (*us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 double (*vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
@@ -67,8 +67,8 @@ double (*qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 double (*square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
-double (*forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
+double (*rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+double (*forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 
 /* common /work_1d/ */
 double (*cv  )/*[PROBLEM_SIZE]*/;

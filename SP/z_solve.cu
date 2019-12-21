@@ -48,7 +48,7 @@ __global__ void z_solve_kernel(
     double (*ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1],
     double (*rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
     double (*speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1],
-    double (*rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1],
     double dttz1, double dttz2, double comz1, double comz4, double comz5, double comz6, double c2dttz1
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x;
@@ -158,17 +158,17 @@ __global__ void z_solve_kernel(
         lhs[k][3] = fac1*lhs[k][3];
         lhs[k][4] = fac1*lhs[k][4];
         for (m = 0; m < 3; m++) {
-          rhs[k][j][i][m] = fac1*rhs[k][j][i][m];
+          rhs[k][m][j][i] = fac1*rhs[k][m][j][i];
         }
         lhs[k1][2] = lhs[k1][2] - lhs[k1][1]*lhs[k][3];
         lhs[k1][3] = lhs[k1][3] - lhs[k1][1]*lhs[k][4];
         for (m = 0; m < 3; m++) {
-          rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhs[k1][1]*rhs[k][j][i][m];
+          rhs[k1][m][j][i] = rhs[k1][m][j][i] - lhs[k1][1]*rhs[k][m][j][i];
         }
         lhs[k2][1] = lhs[k2][1] - lhs[k2][0]*lhs[k][3];
         lhs[k2][2] = lhs[k2][2] - lhs[k2][0]*lhs[k][4];
         for (m = 0; m < 3; m++) {
-          rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhs[k2][0]*rhs[k][j][i][m];
+          rhs[k2][m][j][i] = rhs[k2][m][j][i] - lhs[k2][0]*rhs[k][m][j][i];
         }
       }
     }
@@ -185,12 +185,12 @@ __global__ void z_solve_kernel(
       lhs[k][3] = fac1*lhs[k][3];
       lhs[k][4] = fac1*lhs[k][4];
       for (m = 0; m < 3; m++) {
-        rhs[k][j][i][m] = fac1*rhs[k][j][i][m];
+        rhs[k][m][j][i] = fac1*rhs[k][m][j][i];
       }
       lhs[k1][2] = lhs[k1][2] - lhs[k1][1]*lhs[k][3];
       lhs[k1][3] = lhs[k1][3] - lhs[k1][1]*lhs[k][4];
       for (m = 0; m < 3; m++) {
-        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhs[k1][1]*rhs[k][j][i][m];
+        rhs[k1][m][j][i] = rhs[k1][m][j][i] - lhs[k1][1]*rhs[k][m][j][i];
       }
 
       //---------------------------------------------------------------------
@@ -198,7 +198,7 @@ __global__ void z_solve_kernel(
       //---------------------------------------------------------------------
       fac2 = 1.0/lhs[k1][2];
       for (m = 0; m < 3; m++) {
-        rhs[k1][j][i][m] = fac2*rhs[k1][j][i][m];
+        rhs[k1][m][j][i] = fac2*rhs[k1][m][j][i];
       }
     }
 
@@ -213,25 +213,25 @@ __global__ void z_solve_kernel(
         fac1 = 1.0/lhsp[k][2];
         lhsp[k][3]    = fac1*lhsp[k][3];
         lhsp[k][4]    = fac1*lhsp[k][4];
-        rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
+        rhs[k][m][j][i]  = fac1*rhs[k][m][j][i];
         lhsp[k1][2]   = lhsp[k1][2] - lhsp[k1][1]*lhsp[k][3];
         lhsp[k1][3]   = lhsp[k1][3] - lhsp[k1][1]*lhsp[k][4];
-        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsp[k1][1]*rhs[k][j][i][m];
+        rhs[k1][m][j][i] = rhs[k1][m][j][i] - lhsp[k1][1]*rhs[k][m][j][i];
         lhsp[k2][1]   = lhsp[k2][1] - lhsp[k2][0]*lhsp[k][3];
         lhsp[k2][2]   = lhsp[k2][2] - lhsp[k2][0]*lhsp[k][4];
-        rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhsp[k2][0]*rhs[k][j][i][m];
+        rhs[k2][m][j][i] = rhs[k2][m][j][i] - lhsp[k2][0]*rhs[k][m][j][i];
 
         m = 4;
         fac1 = 1.0/lhsm[k][2];
         lhsm[k][3]    = fac1*lhsm[k][3];
         lhsm[k][4]    = fac1*lhsm[k][4];
-        rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
+        rhs[k][m][j][i]  = fac1*rhs[k][m][j][i];
         lhsm[k1][2]   = lhsm[k1][2] - lhsm[k1][1]*lhsm[k][3];
         lhsm[k1][3]   = lhsm[k1][3] - lhsm[k1][1]*lhsm[k][4];
-        rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsm[k1][1]*rhs[k][j][i][m];
+        rhs[k1][m][j][i] = rhs[k1][m][j][i] - lhsm[k1][1]*rhs[k][m][j][i];
         lhsm[k2][1]   = lhsm[k2][1] - lhsm[k2][0]*lhsm[k][3];
         lhsm[k2][2]   = lhsm[k2][2] - lhsm[k2][0]*lhsm[k][4];
-        rhs[k2][j][i][m] = rhs[k2][j][i][m] - lhsm[k2][0]*rhs[k][j][i][m];
+        rhs[k2][m][j][i] = rhs[k2][m][j][i] - lhsm[k2][0]*rhs[k][m][j][i];
       }
     }
 
@@ -245,26 +245,26 @@ __global__ void z_solve_kernel(
       fac1 = 1.0/lhsp[k][2];
       lhsp[k][3]    = fac1*lhsp[k][3];
       lhsp[k][4]    = fac1*lhsp[k][4];
-      rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
+      rhs[k][m][j][i]  = fac1*rhs[k][m][j][i];
       lhsp[k1][2]   = lhsp[k1][2] - lhsp[k1][1]*lhsp[k][3];
       lhsp[k1][3]   = lhsp[k1][3] - lhsp[k1][1]*lhsp[k][4];
-      rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsp[k1][1]*rhs[k][j][i][m];
+      rhs[k1][m][j][i] = rhs[k1][m][j][i] - lhsp[k1][1]*rhs[k][m][j][i];
 
       m = 4;
       fac1 = 1.0/lhsm[k][2];
       lhsm[k][3]    = fac1*lhsm[k][3];
       lhsm[k][4]    = fac1*lhsm[k][4];
-      rhs[k][j][i][m]  = fac1*rhs[k][j][i][m];
+      rhs[k][m][j][i]  = fac1*rhs[k][m][j][i];
       lhsm[k1][2]   = lhsm[k1][2] - lhsm[k1][1]*lhsm[k][3];
       lhsm[k1][3]   = lhsm[k1][3] - lhsm[k1][1]*lhsm[k][4];
-      rhs[k1][j][i][m] = rhs[k1][j][i][m] - lhsm[k1][1]*rhs[k][j][i][m];
+      rhs[k1][m][j][i] = rhs[k1][m][j][i] - lhsm[k1][1]*rhs[k][m][j][i];
 
       //---------------------------------------------------------------------
       // Scale the last row immediately (some of this is overkill
       // if this is the last cell)
       //---------------------------------------------------------------------
-      rhs[k1][j][i][3] = rhs[k1][j][i][3]/lhsp[k1][2];
-      rhs[k1][j][i][4] = rhs[k1][j][i][4]/lhsm[k1][2];
+      rhs[k1][3][j][i] = rhs[k1][3][j][i]/lhsp[k1][2];
+      rhs[k1][4][j][i] = rhs[k1][4][j][i]/lhsm[k1][2];
     }
 
 
@@ -275,11 +275,11 @@ __global__ void z_solve_kernel(
     k1 = grid_points[2]-1;
     if (i >= 1 && i <= nx2) {
       for (m = 0; m < 3; m++) {
-        rhs[k][j][i][m] = rhs[k][j][i][m] - lhs[k][3]*rhs[k1][j][i][m];
+        rhs[k][m][j][i] = rhs[k][m][j][i] - lhs[k][3]*rhs[k1][m][j][i];
       }
 
-      rhs[k][j][i][3] = rhs[k][j][i][3] - lhsp[k][3]*rhs[k1][j][i][3];
-      rhs[k][j][i][4] = rhs[k][j][i][4] - lhsm[k][3]*rhs[k1][j][i][4];
+      rhs[k][3][j][i] = rhs[k][3][j][i] - lhsp[k][3]*rhs[k1][3][j][i];
+      rhs[k][4][j][i] = rhs[k][4][j][i] - lhsm[k][3]*rhs[k1][4][j][i];
     }
 
     //---------------------------------------------------------------------
@@ -295,20 +295,20 @@ __global__ void z_solve_kernel(
       k2 = k + 2;
       if (i >= 1 && i <= nx2) {
         for (m = 0; m < 3; m++) {
-          rhs[k][j][i][m] = rhs[k][j][i][m] - 
-                            lhs[k][3]*rhs[k1][j][i][m] -
-                            lhs[k][4]*rhs[k2][j][i][m];
+          rhs[k][m][j][i] = rhs[k][m][j][i] - 
+                            lhs[k][3]*rhs[k1][m][j][i] -
+                            lhs[k][4]*rhs[k2][m][j][i];
         }
 
         //-------------------------------------------------------------------
         // And the remaining two
         //-------------------------------------------------------------------
-        rhs[k][j][i][3] = rhs[k][j][i][3] - 
-                          lhsp[k][3]*rhs[k1][j][i][3] -
-                          lhsp[k][4]*rhs[k2][j][i][3];
-        rhs[k][j][i][4] = rhs[k][j][i][4] - 
-                          lhsm[k][3]*rhs[k1][j][i][4] -
-                          lhsm[k][4]*rhs[k2][j][i][4];
+        rhs[k][3][j][i] = rhs[k][3][j][i] - 
+                          lhsp[k][3]*rhs[k1][3][j][i] -
+                          lhsp[k][4]*rhs[k2][3][j][i];
+        rhs[k][4][j][i] = rhs[k][4][j][i] - 
+                          lhsm[k][3]*rhs[k1][4][j][i] -
+                          lhsm[k][4]*rhs[k2][4][j][i];
       }
     }
   }

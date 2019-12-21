@@ -47,7 +47,7 @@ void add()
     for (j = 1; j <= ny2; j++) {
       for (i = 1; i <= nx2; i++) {
         for (m = 0; m < 5; m++) {
-          u[k][j][i][m] = u[k][j][i][m] + rhs[k][j][i][m];
+          u[k][m][j][i] = u[k][m][j][i] + rhs[k][m][j][i];
         }
       }
     }

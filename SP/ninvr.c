@@ -47,20 +47,20 @@ void ninvr()
   for (k = 1; k <= nz2; k++) {
     for (j = 1; j <= ny2; j++) {
       for (i = 1; i <= nx2; i++) {
-        r1 = rhs[k][j][i][0];
-        r2 = rhs[k][j][i][1];
-        r3 = rhs[k][j][i][2];
-        r4 = rhs[k][j][i][3];
-        r5 = rhs[k][j][i][4];
+        r1 = rhs[k][0][j][i];
+        r2 = rhs[k][1][j][i];
+        r3 = rhs[k][2][j][i];
+        r4 = rhs[k][3][j][i];
+        r5 = rhs[k][4][j][i];
 
         t1 = bt * r3;
         t2 = 0.5 * ( r4 + r5 );
 
-        rhs[k][j][i][0] = -r2;
-        rhs[k][j][i][1] =  r1;
-        rhs[k][j][i][2] = bt * ( r4 - r5 );
-        rhs[k][j][i][3] = -t1 + t2;
-        rhs[k][j][i][4] =  t1 + t2;
+        rhs[k][0][j][i] = -r2;
+        rhs[k][1][j][i] =  r1;
+        rhs[k][2][j][i] = bt * ( r4 - r5 );
+        rhs[k][3][j][i] = -t1 + t2;
+        rhs[k][4][j][i] =  t1 + t2;
       }
     }
   }

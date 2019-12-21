@@ -38,7 +38,7 @@
 __global__ void initialize_kernel(
     dim3 gridOffset,
     int* grid_points,
-    double (*u)/*[KMAX]*/[JMAXP+1][IMAXP+1][5],
+    double (*u)/*[KMAX]*/[5][JMAXP+1][IMAXP+1],
     double dnxm1, double dnym1, double dnzm1
 ) {
   int i = blockDim.x * blockIdx.x + threadIdx.x + gridOffset.x;
@@ -57,11 +57,11 @@ __global__ void initialize_kernel(
   if (k >= 0 && k <= grid_points[2]-1) {
     if (j >= 0 && j <= grid_points[1]-1) {
       if (i >= 0 && i <= grid_points[0]-1) {
-        u[k][j][i][0] = 1.0;
-        u[k][j][i][1] = 0.0;
-        u[k][j][i][2] = 0.0;
-        u[k][j][i][3] = 0.0;
-        u[k][j][i][4] = 1.0;
+        u[k][0][j][i] = 1.0;
+        u[k][1][j][i] = 0.0;
+        u[k][2][j][i] = 0.0;
+        u[k][3][j][i] = 0.0;
+        u[k][4][j][i] = 1.0;
       }
     }
   }
@@ -96,7 +96,7 @@ __global__ void initialize_kernel(
           Peta  = eta  * Pface[1][1][m] + (1.0-eta)  * Pface[0][1][m];
           Pzeta = zeta * Pface[1][2][m] + (1.0-zeta) * Pface[0][2][m];
 
-          u[k][j][i][m] = Pxi + Peta + Pzeta - 
+          u[k][m][j][i] = Pxi + Peta + Pzeta - 
                           Pxi*Peta - Pxi*Pzeta - Peta*Pzeta + 
                           Pxi*Peta*Pzeta;
         }
@@ -120,7 +120,7 @@ __global__ void initialize_kernel(
           eta = (double)j * dnym1;
           exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
-            u[k][j][i][m] = temp[m];
+            u[k][m][j][i] = temp[m];
           }
         }
       }
@@ -136,7 +136,7 @@ __global__ void initialize_kernel(
           eta = (double)j * dnym1;
           exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
-            u[k][j][i][m] = temp[m];
+            u[k][m][j][i] = temp[m];
           }
         }
       }
@@ -152,7 +152,7 @@ __global__ void initialize_kernel(
           xi = (double)i * dnxm1;
           exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
-            u[k][j][i][m] = temp[m];
+            u[k][m][j][i] = temp[m];
           }
         }
       }
@@ -168,7 +168,7 @@ __global__ void initialize_kernel(
           xi = (double)i * dnxm1;
           exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
-            u[k][j][i][m] = temp[m];
+            u[k][m][j][i] = temp[m];
           }
         }
       }
@@ -184,7 +184,7 @@ __global__ void initialize_kernel(
           xi = (double)i * dnxm1;
           exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
-            u[k][j][i][m] = temp[m];
+            u[k][m][j][i] = temp[m];
           }
         }
       }
@@ -200,7 +200,7 @@ __global__ void initialize_kernel(
           xi = (double)i * dnxm1;
           exact_solution(xi, eta, zeta, temp);
           for (m = 0; m < 5; m++) {
-            u[k][j][i][m] = temp[m];
+            u[k][m][j][i] = temp[m];
           }
         }
       }
