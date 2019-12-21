@@ -75,7 +75,7 @@ void pinvr()
   pinvr_kernel <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_rhs
   );
-  assert(cudaSuccess == cudaDeviceSynchronize());
+  CHK_CUDA_OK(cudaDeviceSynchronize());
   if (timeron) timer_stop(t_pinvr);
 }
 

@@ -315,11 +315,8 @@ __global__ void z_solve_kernel(
 }
 
 void z_solve() {
-  if (omp_get_num_threads() > 1) {
-    cuda_memcpy_device_to_host();
-#pragma omp barrier
-    cuda_memcpy_host_to_device();
-  }
+  if (omp_get_num_threads() > 1)
+    cuda_sync_z_solve();
   if (timeron) timer_start(t_zsolve);
   z_solve_kernel <<< gridDimXY, blockDimXY >>> (
     dev_grid_points,
@@ -327,7 +324,7 @@ void z_solve() {
     dev_ws, dev_rho_i, dev_speed, dev_rhs,
     dttz1, dttz2, comz1, comz4, comz5, comz6, c2dttz1
   );
-  assert(cudaSuccess == cudaDeviceSynchronize());
+  CHK_CUDA_OK(cudaDeviceSynchronize());
   if (timeron) timer_stop(t_zsolve);
 
   tzetar();

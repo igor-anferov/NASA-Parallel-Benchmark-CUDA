@@ -320,7 +320,7 @@ void x_solve() {
     dev_us, dev_rho_i, dev_speed, dev_rhs,
     dttx1, dttx2, comz1, comz4, comz5, comz6, c2dttx1
   );
-  assert(cudaSuccess == cudaDeviceSynchronize());
+  CHK_CUDA_OK(cudaDeviceSynchronize());
   if (timeron) timer_stop(t_xsolve);
 
   //---------------------------------------------------------------------

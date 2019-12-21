@@ -41,6 +41,9 @@
 //---------------------------------------------------------------------
 #pragma once
 
+#include "stdlib.h"
+#include "stdio.h"
+
 #include "npbparams.h"
 #include "type.h"
 
@@ -51,6 +54,21 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifdef NEED_CUDA
+extern __thread int device;
+extern int device_count;
+
+#define CHK_CUDA_OK(expr) { \
+    cudaError_t __status__ = (expr); \
+    if (__status__ != cudaSuccess) { \
+        fprintf(stderr, "%s:%d\t [thread %d] %s\n%s (%s)\n", \
+            __FILE__, __LINE__, device, #expr, cudaGetErrorName(__status__), cudaGetErrorString(__status__)); \
+        abort(); \
+    } \
+}
+
 #endif
 
 /* common /global/ */
@@ -243,6 +261,8 @@ void allocate_device();
 void deallocate_device();
 void cuda_memcpy_host_to_device();
 void cuda_memcpy_device_to_host();
+void cuda_sync_rhs();
+void cuda_sync_z_solve();
 #endif
 void allocate();
 void initialize();

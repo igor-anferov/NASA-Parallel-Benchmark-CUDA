@@ -22,21 +22,23 @@ thread_local dim3 gridDimXZ;
 thread_local dim3 gridElems;
 thread_local dim3 gridOffset;
 
+__thread int device;
+int device_count;
+
 void cuda_preinit()
 {
-    int n;
-    assert(cudaSuccess == cudaGetDeviceCount(&n));
-    assert(n);
-    omp_set_num_threads(std::min(omp_get_max_threads(), n));
+    CHK_CUDA_OK(cudaGetDeviceCount(&device_count));
+    assert(device_count);
+    omp_set_num_threads(std::min(omp_get_max_threads(), device_count));
+    device_count = omp_get_max_threads();
 }
 
 void cuda_init()
 {
-    int n = omp_get_num_threads();
-    int device = omp_get_thread_num();
+    device = omp_get_thread_num();
 #pragma omp critical
-    std::cout << "Initializing device " << device + 1 << "/" << n << std::endl;
-    assert(cudaSuccess == cudaSetDevice(device));
+    std::cout << "Initializing device " << device + 1 << "/" << device_count << std::endl;
+    CHK_CUDA_OK(cudaSetDevice(device));
 }
 
 void cuda_init_sizes()

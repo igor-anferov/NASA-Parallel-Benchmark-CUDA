@@ -15,12 +15,24 @@ __thread double (*dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
 __thread double (*dev_rhs    )/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
 __thread double (*dev_forcing)/*[KMAX]*/[JMAXP+1][IMAXP+1][5];
 
-#define ALLOCATE(ptr, size) assert(cudaSuccess == cudaMalloc((void**)&(ptr), (size)*sizeof(*(ptr))))
-#define DEALLOCATE(ptr) assert(cudaSuccess == cudaFree(ptr))
-#define MEMCPY(src, dst, size, kind) assert(cudaSuccess == cudaMemcpy(dst, src, (size)*sizeof(*(src)), kind))
+#define ALLOCATE(ptr, size) CHK_CUDA_OK(cudaMalloc((void**)&(ptr), (size)*sizeof(*(ptr))))
+#define DEALLOCATE(ptr) CHK_CUDA_OK(cudaFree(ptr))
+#define MEMCPY(src, dst, size, kind) CHK_CUDA_OK(cudaMemcpy(dst, src, (size)*sizeof(*(src)), kind))
 #define HOST2DEV(ptr, size) MEMCPY(ptr, dev_ ## ptr, size, cudaMemcpyHostToDevice)
 #define DEV2HOST(ptr, size) MEMCPY(dev_ ## ptr, ptr, size, cudaMemcpyDeviceToHost)
 #define DEV2HOST_PART(ptr, size) DEV2HOST(ptr + gridOffset.z, gridElems.z)
+#define DEV2HOST_HALO(ptr, size) { \
+    if (device > 0) \
+        DEV2HOST(ptr + gridOffset.z, size); \
+    if (device < device_count - 1) \
+        DEV2HOST(ptr + gridOffset.z + gridElems.z - size, size); \
+}
+#define HOST2DEV_HALO(ptr, size) { \
+    if (device > 0) \
+        HOST2DEV(ptr + gridOffset.z - size, size); \
+    if (device < device_count - 1) \
+        HOST2DEV(ptr + gridOffset.z + gridElems.z, size); \
+}
 
 void allocate_device()
 {
@@ -57,7 +69,7 @@ void deallocate_device()
 void cuda_memcpy_host_to_device()
 {
     if (timeron) {
-        assert(cudaSuccess == cudaDeviceSynchronize());
+        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_start(t_comm);
     }
     HOST2DEV(grid_points, 3);
@@ -73,7 +85,7 @@ void cuda_memcpy_host_to_device()
     HOST2DEV(rhs, KMAX);
     HOST2DEV(forcing, KMAX);
     if (timeron) {
-        assert(cudaSuccess == cudaDeviceSynchronize());
+        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_stop(t_comm);
     }
 }
@@ -81,10 +93,9 @@ void cuda_memcpy_host_to_device()
 void cuda_memcpy_device_to_host()
 {
     if (timeron) {
-        assert(cudaSuccess == cudaDeviceSynchronize());
+        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_start(t_comm);
     }
-    DEV2HOST(grid_points, 3);
 /* common /fields/ */
     DEV2HOST_PART(u, KMAX);
     DEV2HOST_PART(us, KMAX);
@@ -95,9 +106,56 @@ void cuda_memcpy_device_to_host()
     DEV2HOST_PART(speed, KMAX);
     DEV2HOST_PART(square, KMAX);
     DEV2HOST_PART(rhs, KMAX);
-    DEV2HOST_PART(forcing, KMAX);
     if (timeron) {
-        assert(cudaSuccess == cudaDeviceSynchronize());
+        CHK_CUDA_OK(cudaDeviceSynchronize());
+        timer_stop(t_comm);
+    }
+}
+
+void cuda_sync_rhs()
+{
+    if (timeron) {
+        CHK_CUDA_OK(cudaDeviceSynchronize());
+        timer_start(t_comm);
+    }
+    DEV2HOST_HALO(u, 2);
+    DEV2HOST_HALO(us, 1);
+    DEV2HOST_HALO(vs, 1);
+    DEV2HOST_HALO(ws, 1);
+    DEV2HOST_HALO(qs, 1);
+    DEV2HOST_HALO(rho_i, 1);
+    DEV2HOST_HALO(square, 1);
+#pragma omp barrier
+    HOST2DEV_HALO(u, 2);
+    HOST2DEV_HALO(us, 1);
+    HOST2DEV_HALO(vs, 1);
+    HOST2DEV_HALO(ws, 1);
+    HOST2DEV_HALO(qs, 1);
+    HOST2DEV_HALO(rho_i, 1);
+    HOST2DEV_HALO(square, 1);
+    if (timeron) {
+        CHK_CUDA_OK(cudaDeviceSynchronize());
+        timer_stop(t_comm);
+    }
+}
+
+void cuda_sync_z_solve()
+{
+    if (timeron) {
+        CHK_CUDA_OK(cudaDeviceSynchronize());
+        timer_start(t_comm);
+    }
+    DEV2HOST_PART(ws, KMAX);
+    DEV2HOST_PART(rho_i, KMAX);
+    DEV2HOST_PART(speed, KMAX);
+    DEV2HOST_PART(rhs, KMAX);
+#pragma omp barrier
+    HOST2DEV(ws, KMAX);
+    HOST2DEV(rho_i, KMAX);
+    HOST2DEV(speed, KMAX);
+    HOST2DEV(rhs, KMAX);
+    if (timeron) {
+        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_stop(t_comm);
     }
 }
