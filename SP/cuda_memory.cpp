@@ -74,14 +74,6 @@ void cuda_memcpy_host_to_device()
     HOST2DEV(grid_points, 3);
 /* common /fields/ */
     HOST2DEV(u, KMAX);
-    HOST2DEV(us, KMAX);
-    HOST2DEV(vs, KMAX);
-    HOST2DEV(ws, KMAX);
-    HOST2DEV(qs, KMAX);
-    HOST2DEV(rho_i, KMAX);
-    HOST2DEV(speed, KMAX);
-    HOST2DEV(square, KMAX);
-    HOST2DEV(rhs, KMAX);
     HOST2DEV(forcing, KMAX);
     if (timeron) {
         timer_stop(t_comm);
@@ -95,13 +87,6 @@ void cuda_memcpy_device_to_host()
     }
 /* common /fields/ */
     DEV2HOST_PART(u, KMAX);
-    DEV2HOST_PART(us, KMAX);
-    DEV2HOST_PART(vs, KMAX);
-    DEV2HOST_PART(ws, KMAX);
-    DEV2HOST_PART(qs, KMAX);
-    DEV2HOST_PART(rho_i, KMAX);
-    DEV2HOST_PART(speed, KMAX);
-    DEV2HOST_PART(square, KMAX);
     DEV2HOST_PART(rhs, KMAX);
     if (timeron) {
         timer_stop(t_comm);
