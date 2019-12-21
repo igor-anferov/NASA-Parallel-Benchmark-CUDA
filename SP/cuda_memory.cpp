@@ -40,6 +40,13 @@ double (**dev_forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
     if (device < device_count - 1) \
         DEV2DEV(ptr, device, device + 1, gridOffset.z + gridElems.z - size, size); \
 }
+#define BCAST(ptr) { \
+    for (int i = 0; i < device_count; ++i) { \
+        if (i == device) \
+            continue; \
+        DEV2DEV(ptr, device, i, gridOffset.z, gridElems.z); \
+    } \
+}
 
 void allocate_device()
 {
@@ -124,15 +131,12 @@ void cuda_sync_z_solve()
     if (timeron) {
         timer_start(t_comm);
     }
-    DEV2HOST_PART(ws, KMAX);
-    DEV2HOST_PART(rho_i, KMAX);
-    DEV2HOST_PART(speed, KMAX);
-    DEV2HOST_PART(rhs, KMAX);
 #pragma omp barrier
-    HOST2DEV(ws, KMAX);
-    HOST2DEV(rho_i, KMAX);
-    HOST2DEV(speed, KMAX);
-    HOST2DEV(rhs, KMAX);
+    BCAST(ws);
+    BCAST(rho_i);
+    BCAST(speed);
+    BCAST(rhs);
+#pragma omp barrier
     if (timeron) {
         timer_stop(t_comm);
     }
