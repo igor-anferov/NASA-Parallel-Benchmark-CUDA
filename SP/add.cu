@@ -64,7 +64,7 @@ void add()
 {
   if (timeron) timer_start(t_add);
   add_kernel <<< gridDim_, blockDim_ >>> (
-    gridOffset, nx2, ny2, nz2, dev_u, dev_rhs
+    gridOffset, nx2, ny2, nz2, dev_u[device], dev_rhs[device]
   );
   if (timeron) timer_stop(t_add);
 }

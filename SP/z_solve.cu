@@ -319,9 +319,9 @@ void z_solve() {
     cuda_sync_z_solve();
   if (timeron) timer_start(t_zsolve);
   z_solve_kernel <<< gridDimXY, blockDimXY >>> (
-    dev_grid_points,
+    dev_grid_points[device],
     nx2, ny2, nz2,
-    dev_ws, dev_rho_i, dev_speed, dev_rhs,
+    dev_ws[device], dev_rho_i[device], dev_speed[device], dev_rhs[device],
     dttz1, dttz2, comz1, comz4, comz5, comz6, c2dttz1
   );
   if (timeron) timer_stop(t_zsolve);

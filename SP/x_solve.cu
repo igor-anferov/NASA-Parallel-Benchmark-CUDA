@@ -315,9 +315,9 @@ void x_solve() {
   if (timeron) timer_start(t_xsolve);
   x_solve_kernel <<< gridDimYZ, blockDimYZ >>> (
     gridOffset,
-    dev_grid_points,
+    dev_grid_points[device],
     nx2, ny2, nz2,
-    dev_us, dev_rho_i, dev_speed, dev_rhs,
+    dev_us[device], dev_rho_i[device], dev_speed[device], dev_rhs[device],
     dttx1, dttx2, comz1, comz4, comz5, comz6, c2dttx1
   );
   if (timeron) timer_stop(t_xsolve);

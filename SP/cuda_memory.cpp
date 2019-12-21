@@ -3,35 +3,46 @@
 
 #include "header.h"
 
-__thread int *dev_grid_points/*[3]*/;
-__thread double (*dev_u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
-__thread double (*dev_us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-__thread double (*dev_vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-__thread double (*dev_ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-__thread double (*dev_qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-__thread double (*dev_rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-__thread double (*dev_speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-__thread double (*dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-__thread double (*dev_rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
-__thread double (*dev_forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+int **dev_grid_points/*[3]*/;
+double (**dev_u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+double (**dev_us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+double (**dev_vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+double (**dev_ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+double (**dev_qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+double (**dev_rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+double (**dev_speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+double (**dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+double (**dev_rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+double (**dev_forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 
-#define ALLOCATE(ptr, size) CHK_CUDA_OK(cudaMalloc((void**)&(ptr), (size)*sizeof(*(ptr))))
-#define DEALLOCATE(ptr) CHK_CUDA_OK(cudaFree(ptr))
+#define ALLOCATE(ptr, size) { \
+    if (device == 0) \
+        ptr = (typeof(ptr)) malloc(device_count * sizeof(*(ptr))); \
+    _Pragma("omp barrier") \
+    CHK_CUDA_OK(cudaMalloc((void**)&(ptr)[device], (size)*sizeof(*(ptr)[device]))); \
+}
+#define DEALLOCATE(ptr) { \
+    CHK_CUDA_OK(cudaFree(ptr[device])); \
+    _Pragma("omp barrier") \
+    if (device == 0) \
+        free(ptr); \
+}
 #define MEMCPY(src, dst, size, kind) CHK_CUDA_OK(cudaMemcpy(dst, src, (size)*sizeof(*(src)), kind))
-#define HOST2DEV(ptr, size) MEMCPY(ptr, dev_ ## ptr, size, cudaMemcpyHostToDevice)
-#define DEV2HOST(ptr, size) MEMCPY(dev_ ## ptr, ptr, size, cudaMemcpyDeviceToHost)
-#define DEV2HOST_PART(ptr, size) DEV2HOST(ptr + gridOffset.z, gridElems.z)
+#define HOST2DEV_FROM(ptr, offset, size) MEMCPY(ptr + offset, dev_ ## ptr[device] + offset, size, cudaMemcpyHostToDevice)
+#define HOST2DEV(ptr, size) HOST2DEV_FROM(ptr, 0, size)
+#define DEV2HOST(ptr, offset, size) MEMCPY(dev_ ## ptr[device] + offset, ptr + offset, size, cudaMemcpyDeviceToHost)
+#define DEV2HOST_PART(ptr, size) DEV2HOST(ptr, gridOffset.z, gridElems.z)
 #define DEV2HOST_HALO(ptr, size) { \
     if (device > 0) \
-        DEV2HOST(ptr + gridOffset.z, size); \
+        DEV2HOST(ptr, gridOffset.z, size); \
     if (device < device_count - 1) \
-        DEV2HOST(ptr + gridOffset.z + gridElems.z - size, size); \
+        DEV2HOST(ptr, gridOffset.z + gridElems.z - size, size); \
 }
 #define HOST2DEV_HALO(ptr, size) { \
     if (device > 0) \
-        HOST2DEV(ptr + gridOffset.z - size, size); \
+        HOST2DEV_FROM(ptr, gridOffset.z - size, size); \
     if (device < device_count - 1) \
-        HOST2DEV(ptr + gridOffset.z + gridElems.z, size); \
+        HOST2DEV_FROM(ptr, gridOffset.z + gridElems.z, size); \
 }
 
 void allocate_device()

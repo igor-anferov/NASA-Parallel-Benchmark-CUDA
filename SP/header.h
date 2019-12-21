@@ -73,7 +73,7 @@ extern int device_count;
 
 /* common /global/ */
 extern int *grid_points/*[3]*/;
-extern __thread int *dev_grid_points/*[3]*/;
+extern int **dev_grid_points/*[3]*/;
 extern int nx2, ny2, nz2;
 extern logical timeron;
 
@@ -202,16 +202,16 @@ extern double (*forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 
 #ifdef NEED_CUDA
 /* common /fields/ */
-extern __thread double (*dev_u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
-extern __thread double (*dev_us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern __thread double (*dev_vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern __thread double (*dev_ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern __thread double (*dev_qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern __thread double (*dev_rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern __thread double (*dev_speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern __thread double (*dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
-extern __thread double (*dev_rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
-extern __thread double (*dev_forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+extern double (**dev_u      )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+extern double (**dev_us     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (**dev_vs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (**dev_ws     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (**dev_qs     )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (**dev_rho_i  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (**dev_speed  )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (**dev_square )/*[KMAX]*/[JMAXP+1][IMAXP+1];
+extern double (**dev_rhs    )/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
+extern double (**dev_forcing)/*[KMAX]*/[5][JMAXP+1][IMAXP+1];
 #endif
 
 /* common /work_1d/ */

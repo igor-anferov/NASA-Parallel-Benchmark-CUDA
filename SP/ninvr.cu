@@ -72,7 +72,7 @@ __global__ void ninvr_kernel(
 void ninvr() {
   if (timeron) timer_start(t_ninvr);
   ninvr_kernel <<< gridDim_, blockDim_ >>> (
-    gridOffset, nx2, ny2, nz2, dev_rhs
+    gridOffset, nx2, ny2, nz2, dev_rhs[device]
   );
   if (timeron) timer_stop(t_ninvr);
 }

@@ -88,7 +88,7 @@ void txinvr()
 {
   if (timeron) timer_start(t_txinvr);
   txinvr_kernel <<< gridDim_, blockDim_ >>> (
-    gridOffset, nx2, ny2, nz2, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_speed, dev_rhs
+    gridOffset, nx2, ny2, nz2, dev_us[device], dev_vs[device], dev_ws[device], dev_qs[device], dev_rho_i[device], dev_speed[device], dev_rhs[device]
   );
   if (timeron) timer_stop(t_txinvr);
 }
