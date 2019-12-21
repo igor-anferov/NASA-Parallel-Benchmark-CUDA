@@ -90,7 +90,6 @@ void txinvr()
   txinvr_kernel <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_us, dev_vs, dev_ws, dev_qs, dev_rho_i, dev_speed, dev_rhs
   );
-  CHK_CUDA_OK(cudaDeviceSynchronize());
   if (timeron) timer_stop(t_txinvr);
 }
 

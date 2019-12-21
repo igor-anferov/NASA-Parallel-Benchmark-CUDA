@@ -69,7 +69,6 @@ void deallocate_device()
 void cuda_memcpy_host_to_device()
 {
     if (timeron) {
-        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_start(t_comm);
     }
     HOST2DEV(grid_points, 3);
@@ -85,7 +84,6 @@ void cuda_memcpy_host_to_device()
     HOST2DEV(rhs, KMAX);
     HOST2DEV(forcing, KMAX);
     if (timeron) {
-        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_stop(t_comm);
     }
 }
@@ -93,7 +91,6 @@ void cuda_memcpy_host_to_device()
 void cuda_memcpy_device_to_host()
 {
     if (timeron) {
-        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_start(t_comm);
     }
 /* common /fields/ */
@@ -107,7 +104,6 @@ void cuda_memcpy_device_to_host()
     DEV2HOST_PART(square, KMAX);
     DEV2HOST_PART(rhs, KMAX);
     if (timeron) {
-        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_stop(t_comm);
     }
 }
@@ -115,7 +111,6 @@ void cuda_memcpy_device_to_host()
 void cuda_sync_rhs()
 {
     if (timeron) {
-        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_start(t_comm);
     }
     DEV2HOST_HALO(u, 2);
@@ -134,7 +129,6 @@ void cuda_sync_rhs()
     HOST2DEV_HALO(rho_i, 1);
     HOST2DEV_HALO(square, 1);
     if (timeron) {
-        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_stop(t_comm);
     }
 }
@@ -142,7 +136,6 @@ void cuda_sync_rhs()
 void cuda_sync_z_solve()
 {
     if (timeron) {
-        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_start(t_comm);
     }
     DEV2HOST_PART(ws, KMAX);
@@ -155,7 +148,6 @@ void cuda_sync_z_solve()
     HOST2DEV(speed, KMAX);
     HOST2DEV(rhs, KMAX);
     if (timeron) {
-        CHK_CUDA_OK(cudaDeviceSynchronize());
         timer_stop(t_comm);
     }
 }

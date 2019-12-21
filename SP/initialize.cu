@@ -214,6 +214,5 @@ void initialize()
 {
   if (timeron) timer_start(t_init);
   initialize_kernel <<< gridDim_, blockDim_ >>> (gridOffset, dev_grid_points, dev_u, dnxm1, dnym1, dnzm1);
-  CHK_CUDA_OK(cudaDeviceSynchronize());
   if (timeron) timer_stop(t_init);
 }

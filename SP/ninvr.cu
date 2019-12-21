@@ -74,6 +74,5 @@ void ninvr() {
   ninvr_kernel <<< gridDim_, blockDim_ >>> (
     gridOffset, nx2, ny2, nz2, dev_rhs
   );
-  CHK_CUDA_OK(cudaDeviceSynchronize());
   if (timeron) timer_stop(t_ninvr);
 }
